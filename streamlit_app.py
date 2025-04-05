@@ -38,8 +38,8 @@ if archivo is not None:
     st.subheader("🤖 Asistente Gerencial")
     resumen_texto = ""
     for _, row in resumen_sucursal.iterrows():
-        resumen_texto += f"Sucursal {row['sucursal']}: Ventas = {row['ventas_reales']}, Meta = {row['meta_sucursal']}. Cumple: {row['cumple_meta_sucursal']}
-"
+       resumen_texto += f"Sucursal {row['sucursal']}: Ventas = {row['ventas_reales']}, Meta = {row['meta_sucursal']}. Cumple: {row['cumple_meta_sucursal']}"
+
 
     if st.button("Generar recomendaciones"):
         respuesta = generar_respuesta(resumen_texto)
