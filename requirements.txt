@@ -2,9 +2,11 @@ streamlit
 pandas
 openpyxl
 openai
+openai>=1.0.0
 matplotlib
 seaborn
 scikit-learn
-openai>=1.0.0
+tabulate
+
 
 
