@@ -7,7 +7,4 @@ matplotlib
 seaborn
 scikit-learn
 tabulate
-pip install fpdf
-
-
-
+fpdf
