@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from asistente import generar_respuesta
 
 st.set_page_config(page_title="Chat Gerencial - Ventas", layout="wide")
 
@@ -32,6 +33,17 @@ if archivo is not None:
     for _, row in resumen_sucursal.iterrows():
         if not row['cumple_meta_sucursal']:
             st.warning(f"La sucursal {row['sucursal']} no cumplió la meta. Ventas: {row['ventas_reales']} / Meta: {row['meta_sucursal']}")
+
+    # Asistente Gerencial
+    st.subheader("🤖 Asistente Gerencial")
+    resumen_texto = ""
+    for _, row in resumen_sucursal.iterrows():
+        resumen_texto += f"Sucursal {row['sucursal']}: Ventas = {row['ventas_reales']}, Meta = {row['meta_sucursal']}. Cumple: {row['cumple_meta_sucursal']}
+"
+
+    if st.button("Generar recomendaciones"):
+        respuesta = generar_respuesta(resumen_texto)
+        st.success(respuesta)
 
 else:
     st.info("Por favor, carga un archivo Excel con los datos de ventas.")
