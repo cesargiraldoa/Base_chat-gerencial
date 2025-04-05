@@ -12,7 +12,7 @@ from openai import OpenAI
 # Configura el cliente de OpenAI usando el secreto
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-st.set_page_config(page_title="Chat Gerencial - Análisis de Ventas", layout="wide")
+st.set_page_config(page_title="Chat Gerencial - Ventas", layout="wide")
 st.title("🤖 Chat Gerencial - Análisis de Ventas")
 
 # Subida de archivo
@@ -47,7 +47,7 @@ if archivo:
     st.write("### 📄 Datos con Clúster asignado")
     st.dataframe(df_cluster)
 
-    # Gráfico de clúster en 2D (si hay al menos 2 columnas numéricas)
+    # Gráfico de clúster en 2D
     if len(numeric_cols) >= 2:
         st.write("### 📌 Visualización de Clústeres")
         fig2, ax2 = plt.subplots()
@@ -81,20 +81,26 @@ Resumen:
     except Exception as e:
         st.warning(f"⚠️ Error al generar descripción con IA: {e}")
 
-    # Chat gerencial interactivo
-    st.subheader("🤖 Asistente Gerencial")
-    pregunta = st.text_input("¿Qué deseas analizar o preguntar?")
+    # Chat tipo conversación
+    st.subheader("💬 Chat Gerencial Interactivo")
 
-    if st.button("Generar análisis con IA") and pregunta:
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
+
+    for i, (user, bot) in enumerate(st.session_state.chat_history):
+        st.markdown(f"**Tú:** {user}")
+        st.markdown(f"**Asistente:** {bot}")
+
+    nueva_pregunta = st.text_input("Escribe tu pregunta:", key="input")
+
+    if st.button("Enviar pregunta") and nueva_pregunta:
         try:
-            resumen_datos = df.describe().to_string()
-            contexto = f"Datos disponibles:\n{resumen_datos}"
-
+            contexto = df.describe().to_string()
             prompt_chat = f"""
 {contexto}
 
 Basado en los datos anteriores, responde esta pregunta de forma ejecutiva:
-{pregunta}
+{nueva_pregunta}
 """
             respuesta_chat = client.chat.completions.create(
                 model="gpt-3.5-turbo",
@@ -103,6 +109,8 @@ Basado en los datos anteriores, responde esta pregunta de forma ejecutiva:
                     {"role": "user", "content": prompt_chat}
                 ]
             )
-            st.success(respuesta_chat.choices[0].message.content)
+            respuesta = respuesta_chat.choices[0].message.content
+            st.session_state.chat_history.append((nueva_pregunta, respuesta))
+            st.experimental_rerun()
         except Exception as e:
             st.warning(f"⚠️ Error al generar análisis: {e}")
