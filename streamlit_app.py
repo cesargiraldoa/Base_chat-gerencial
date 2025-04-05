@@ -11,6 +11,8 @@ import io
 from fpdf import FPDF
 import base64
 import requests
+pip install fpdf
+
 
 # Configura el cliente de OpenAI usando el secreto
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
