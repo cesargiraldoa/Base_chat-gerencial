@@ -1,33 +1,19 @@
-import openai
 import os
+import openai
 
-# Asegúrate de tener esta variable como secreto en Streamlit Cloud
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-def generar_descripcion_clusters(df_clusters):
+def generar_respuesta(prompt_usuario):
     try:
-        # Convertimos la tabla en texto
-        tabla_texto = df_clusters.to_string(index=False)
-
-        # Creamos el mensaje para enviar al modelo
-        mensaje = (
-            "A continuación te presento una tabla con información de distintos clústeres de clientes. "
-            "Por favor, genera una descripción clara y útil para un gerente comercial, "
-            "indicando las características principales de cada clúster, sus diferencias y cualquier oportunidad relevante.\n\n"
-            f"{tabla_texto}"
-        )
-
-        # Llamada a la API de OpenAI (nuevo formato)
         respuesta = openai.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "Eres un asistente experto en análisis de datos comerciales."},
-                {"role": "user", "content": mensaje}
+                {"role": "system", "content": "Eres un analista de datos experto en análisis de ventas y operaciones."},
+                {"role": "user", "content": prompt_usuario}
             ],
-            temperature=0.7
+            temperature=0.7,
+            max_tokens=500
         )
-
-        return respuesta.choices[0].message.content
-
+        return respuesta.choices[0].message.content.strip()
     except Exception as e:
-        return f"❌ Error al generar descripción con IA:\n\n{str(e)}"
+        return f"❌ Error al generar respuesta con IA: {str(e)}"
