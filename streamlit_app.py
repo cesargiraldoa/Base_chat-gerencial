@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import openai
 import os
+openai.api_key = os.getenv("OPENAI_API_KEY")
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.preprocessing import StandardScaler
