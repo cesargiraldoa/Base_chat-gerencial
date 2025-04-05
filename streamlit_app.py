@@ -1,153 +1,101 @@
 import streamlit as st
 import pandas as pd
-import openai
-import os
-openai.api_key = os.getenv("OPENAI_API_KEY")
-import matplotlib.pyplot as plt
 import seaborn as sns
+import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
+from openai import OpenAI
 
-st.set_page_config(page_title="Chat Gerencial - Análisis de Ventas", layout="wide")
+st.set_page_config(page_title="Chat Gerencial - Ventas", layout="wide")
 st.title("📊 Chat Gerencial - Análisis de Ventas")
 
-# Configura la clave de OpenAI desde los secretos
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
-# Función para generar descripción de clústeres usando la nueva interfaz de OpenAI
-def generar_descripcion_clusters(df_cluster):
-    try:
-        prompt = f"""
-Analiza la siguiente tabla de clústeres y genera una breve descripción de cada grupo, enfocándote en el volumen de ventas, el cumplimiento de metas y las diferencias relevantes.
-
-{df_cluster.to_string(index=False)}
-"""
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "Eres un analista experto en ventas y segmentación de clientes."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.5,
-            max_tokens=500
-        )
-        return response.choices[0].message.content.strip()
-    except Exception as e:
-        return f"⚠️ Error al generar descripción con IA:\n\n{e}"
-
-# Carga del archivo Excel
-archivo = st.file_uploader("📥 Cargar archivo Excel de ventas", type=["xlsx"])
-
+archivo = st.file_uploader("Cargar archivo Excel de ventas", type=[".xlsx"])
 if archivo is not None:
     df = pd.read_excel(archivo)
 
-    st.subheader("🔍 Vista general de los datos")
-    st.dataframe(df)
+    st.subheader("📄 Vista general de los datos")
+    st.dataframe(df.head())
 
-    # Verifica que existan las columnas necesarias
+    st.subheader("📈 Resumen estadístico")
+    st.dataframe(df.describe())
+
     if 'ventas_reales' in df.columns and 'meta_sucursal' in df.columns:
-        # Genera columnas derivadas
-        df['cumple_meta'] = df['ventas_reales'] >= df['meta_sucursal']
-        df['diferencia'] = df['ventas_reales'] - df['meta_sucursal']
 
-        st.subheader("📊 Resumen estadístico")
-        st.dataframe(df.describe())
+        df['cumple_meta_sucursal'] = df['ventas_reales'] >= df['meta_sucursal']
 
-        # ========== Gráfica 1: Ventas vs Metas ==========
-        st.subheader("📊 Ventas Reales vs Metas por Sucursal")
-        fig1, ax1 = plt.subplots()
-        ax1.bar(df['sucursal'], df['ventas_reales'], label='Ventas', color='blue')
-        ax1.bar(df['sucursal'], df['meta_sucursal'], alpha=0.6, label='Meta', color='orange')
-        ax1.set_title("Ventas vs Metas por Sucursal")
-        ax1.legend()
-        st.pyplot(fig1)
+        X = df[['ventas_reales', 'meta_sucursal']].copy()
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
 
-        # ========== Gráfica 2: Cumplimiento de Metas (Pie) ==========
-        st.subheader("✅ Cumplimiento de Metas")
+        kmeans = KMeans(n_clusters=3, random_state=42)
+        df['cluster'] = kmeans.fit_predict(X_scaled)
+
+        st.subheader("📊 Gráfico de Clústeres")
+        fig, ax = plt.subplots()
+        scatter = ax.scatter(df['ventas_reales'], df['meta_sucursal'], c=df['cluster'], cmap='viridis')
+        ax.legend(*scatter.legend_elements(), title="Clústers")
+        ax.set_xlabel("Ventas Reales")
+        ax.set_ylabel("Meta Sucursal")
+        st.pyplot(fig)
+
+        st.subheader("📋 Tabla con Clúster asignado")
+        st.dataframe(df[['sucursal', 'ventas_reales', 'meta_sucursal', 'cluster']])
+
+        st.subheader("🌡 Mapa de calor de correlaciones")
         fig2, ax2 = plt.subplots()
-        cumple_counts = df['cumple_meta'].value_counts()
-        ax2.pie(cumple_counts, labels=['Cumple', 'No cumple'], autopct='%1.1f%%', colors=['green', 'red'])
+        sns.heatmap(df.select_dtypes(include='number').corr(), annot=True, cmap="coolwarm", ax=ax2)
         st.pyplot(fig2)
 
-        # ========== Gráfica 3: Diferencia entre Ventas y Metas ==========
-        st.subheader("📉 Diferencia entre Ventas y Metas")
-        fig3, ax3 = plt.subplots()
-        colores = ['green' if x >= 0 else 'red' for x in df['diferencia']]
-        ax3.bar(df['sucursal'], df['diferencia'], color=colores)
-        ax3.axhline(0, linestyle='--', color='gray')
-        ax3.set_title("Diferencia (Ventas - Meta)")
-        st.pyplot(fig3)
-
-        # ========== Gráfica 4: Mapa de Calor de Correlaciones ==========
-        st.subheader("🌡️ Mapa de Calor de Correlaciones")
-        numeric_cols = df.select_dtypes(include='number')
-        fig4, ax4 = plt.subplots()
-        sns.heatmap(numeric_cols.corr(), annot=True, cmap="coolwarm", ax=ax4)
-        st.pyplot(fig4)
-
-        # ========== Clustering: Análisis de clústeres ==========
-        st.subheader("🔎 Análisis de Clústeres (Agrupación de Sucursales)")
-        clustering_data = df[['ventas_reales', 'meta_sucursal', 'diferencia']]
-        scaler = StandardScaler()
-        clustering_scaled = scaler.fit_transform(clustering_data)
-
-        kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
-        df['cluster'] = kmeans.fit_predict(clustering_scaled)
-
-        st.markdown("📋 **Asignación de clúster por sucursal**")
-        st.dataframe(df[['sucursal', 'ventas_reales', 'meta_sucursal', 'diferencia', 'cluster']])
-
-        st.subheader("📈 Visualización de Clústeres")
-        fig5, ax5 = plt.subplots()
-        scatter = ax5.scatter(
-            clustering_scaled[:, 0],
-            clustering_scaled[:, 2],
-            c=df['cluster'],
-            cmap='viridis',
-            s=100
-        )
-        ax5.set_xlabel("Ventas (escaladas)")
-        ax5.set_ylabel("Diferencia (escalada)")
-        ax5.set_title("Agrupación de Sucursales")
-        st.pyplot(fig5)
-
-        # ========== Descripción de Clústeres con IA ==========
         st.subheader("🧠 Descripción de Clústeres (IA)")
-        df_cluster = df[['sucursal', 'ventas_reales', 'meta_sucursal', 'diferencia', 'cluster']]
-        descripcion_clusters = generar_descripcion_clusters(df_cluster)
-        st.write(descripcion_clusters)
-
-        # ========== Asistente Gerencial - Pregunta Libre ==========
-        st.subheader("💬 Asistente Gerencial - Pregunta libre con IA")
-        pregunta = st.text_area("Escribe tu pregunta sobre estos datos:")
-        if st.button("Obtener análisis con IA") and pregunta:
-            resumen = ""
-            for _, row in df.iterrows():
-                resumen += (
-                    f"Sucursal: {row['sucursal']} - "
-                    f"Ventas: {row['ventas_reales']} - "
-                    f"Meta: {row['meta_sucursal']} - "
-                    f"Diferencia: {row['diferencia']} - "
-                    f"Cumple: {'Sí' if row['cumple_meta'] else 'No'}\n"
-                )
+        try:
+            resumen = df.groupby('cluster').agg({
+                'ventas_reales': 'mean',
+                'meta_sucursal': 'mean',
+                'cumple_meta_sucursal': 'mean'
+            }).reset_index()
 
             prompt = f"""
-Eres un asistente experto en análisis gerencial de ventas. Con base en el siguiente resumen, responde de forma ejecutiva y profesional:
+Eres un experto en análisis de datos. A continuación, se presentan los resultados de un análisis de clústeres aplicado a datos de ventas. Cada fila representa un clúster y contiene el promedio de ventas reales, la meta de ventas y el porcentaje de cumplimiento de meta. Por favor, describe de forma ejecutiva y analítica las características de cada clúster y ofrece posibles recomendaciones.
 
-{resumen}
-
-Pregunta del usuario: {pregunta}
+{resumen.to_markdown(index=False)}
 """
-            try:
-                resp = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
-                    messages=[{"role": "user", "content": prompt}],
-                    temperature=0.3,
-                    max_tokens=800
-                )
-                st.success("Respuesta del asistente:")
-                st.write(resp.choices[0].message.content.strip())
-            except Exception as e:
-                st.error(f"Ocurrió un error al consultar la IA: {e}")
+            client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "Eres un analista de datos."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            descripcion = response.choices[0].message.content
+            st.markdown(descripcion)
+
+        except Exception as e:
+            st.error(f"⚠️ Error al generar descripción con IA:\n\n{str(e)}")
+
+st.subheader("🤖 Asistente Gerencial")
+pregunta = st.text_area("¿Qué deseas analizar o preguntar?", placeholder="Ej: ¿Cuáles sucursales cumplieron la meta?")
+if st.button("Generar análisis con IA"):
+    if archivo is not None and pregunta:
+        try:
+            prompt_usuario = f"""
+Eres un asistente de inteligencia de negocios. Responde en español a la siguiente pregunta basada en los siguientes datos de ventas:
+
+{df.to_markdown(index=False)}
+
+Pregunta: {pregunta}
+"""
+            client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+            respuesta = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "Eres un analista de datos."},
+                    {"role": "user", "content": prompt_usuario}
+                ]
+            )
+            st.success(respuesta.choices[0].message.content)
+
+        except Exception as e:
+            st.error(f"⚠️ Error al generar respuesta:\n\n{str(e)}")
     else:
-        st.warning("❗ El archivo debe contener las columnas: 'ventas_reales' y 'meta_sucursal'")
+        st.warning("Por favor, carga un archivo Excel y escribe tu pregunta.")
