@@ -4,3 +4,5 @@ openpyxl
 openai
 matplotlib
 seaborn
+scikit-learn
+
