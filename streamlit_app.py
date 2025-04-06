@@ -20,22 +20,40 @@ def handle_response():
     nueva_pregunta = st.session_state["input_question"]
     if nueva_pregunta:
         try:
-            # Asumiendo que tienes un dataframe df cargado con datos relevantes
-            contexto = """
-            Los datos de ventas incluyen el número total de unidades vendidas, ingresos generados y comparaciones con metas establecidas para diferentes periodos.
-            """
+            # Si tienes un archivo cargado, procesa los datos de ventas
+            if 'df' in st.session_state:
+                # Datos extraídos del archivo Excel
+                ventas_data = st.session_state['df']
+
+                # Genera un contexto con datos específicos de ventas
+                ventas_totales = ventas_data['ventas'].sum()
+                ventas_promedio = ventas_data['ventas'].mean()
+                ventas_maximas = ventas_data['ventas'].max()
+                ventas_minimas = ventas_data['ventas'].min()
+
+                contexto = f"""
+                Se analizaron los datos de ventas con los siguientes resultados:
+                - Ventas totales: {ventas_totales}
+                - Ventas promedio: {ventas_promedio}
+                - Ventas máximas en un periodo: {ventas_maximas}
+                - Ventas mínimas en un periodo: {ventas_minimas}
+
+                Estos datos proporcionan una base sólida para analizar las tendencias de ventas a lo largo del tiempo y compararlas con metas establecidas.
+                """
+
+            else:
+                # En caso de que no haya datos cargados
+                contexto = "No se han cargado datos de ventas aún. Por favor, sube un archivo Excel de ventas."
 
             prompt_chat = f"""
 {contexto}
 
-Proporcione un análisis detallado de las ventas, identificando patrones clave, fluctuaciones y cualquier tendencia significativa.
-Además, brinde recomendaciones prácticas para la toma de decisiones ejecutivas basadas en los datos disponibles.
 Pregunta: {nueva_pregunta}
 """
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "Eres un experto analista de ventas y gerencia."},
+                    {"role": "system", "content": "Eres un experto analista en ventas y gerencia."},
                     {"role": "user", "content": prompt_chat}
                 ]
             )
@@ -51,6 +69,7 @@ archivo = st.file_uploader("Cargar archivo Excel de ventas", type=["xlsx"])
 
 if archivo:
     df = pd.read_excel(archivo)
+    st.session_state['df'] = df  # Guardar el dataframe en el estado de la sesión
     st.subheader("📊 Vista general de los datos")
     st.dataframe(df)
 
