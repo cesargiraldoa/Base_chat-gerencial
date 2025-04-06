@@ -73,8 +73,8 @@ Resumen:
         respuesta_chat = client.chat.completions.create(
     model="gpt-3.5-turbo",
     messages=[
-        {"role": "system", "content": "Eres un asesor gerencial experto en ventas y análisis de datos."},
-        {"role": "user", "content": prompt_chat}
+       {"role": "system", "content": "Eres un asesor gerencial experto en ventas y análisis de datos."},
+       {"role": "user", "content": prompt_chat}
     ]
 )
         descripcion = response.choices[0].message.content
