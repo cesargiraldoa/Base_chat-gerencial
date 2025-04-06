@@ -125,26 +125,28 @@ Resumen:
         st.markdown(f"**🧑 Tú:** {user}")
         st.markdown(f"**🤖 Asistente:** {bot}")
 
-    # Exportar chat como archivo de texto
-    if st.session_state.chat_history:
-        chat_export = "\n\n".join([f"Tú: {u}\nAsistente: {b}" for u, b in st.session_state.chat_history])
-        buffer = io.StringIO()
-        buffer.write(chat_export)
-        st.download_button("📥 Exportar conversación (.txt)", buffer.getvalue(), file_name="chat_gerencial.txt")
+    # Exportar chat como archivo PDF
+if st.session_state.chat_history:
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.set_font("Arial", size=12)
+    
+    # Escribe las conversaciones
+    for u, b in st.session_state.chat_history:
+        pdf.multi_cell(0, 10, f"Tú: {u}\nAsistente: {b}\n")
+    
+    # Guardar PDF en memoria con BytesIO
+    pdf_output = io.BytesIO()  # Usamos BytesIO para mantener el archivo en memoria
+    pdf.output(pdf_output)
+    
+    # Aseguramos que el cursor esté al principio del archivo
+    pdf_output.seek(0)
 
-        # Exportar chat como PDF
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_auto_page_break(auto=True, margin=15)
-        pdf.set_font("Arial", size=12)
-        for u, b in st.session_state.chat_history:
-            pdf.multi_cell(0, 10, f"Tú: {u}\nAsistente: {b}\n")
-        pdf_output = io.BytesIO()
-        pdf.output(pdf_output)
-        st.download_button(
-            label="📄 Exportar como PDF",
-            data=pdf_output.getvalue(),
-            file_name="chat_gerencial.pdf",
-            mime="application/pdf"
-        )
-
+    # Enviar el PDF al usuario
+    st.download_button(
+        label="📄 Exportar como PDF",
+        data=pdf_output,
+        file_name="chat_gerencial.pdf",
+        mime="application/pdf"
+    )
