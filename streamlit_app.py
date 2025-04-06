@@ -20,18 +20,22 @@ def handle_response():
     nueva_pregunta = st.session_state["input_question"]
     if nueva_pregunta:
         try:
-            # Contexto de los datos analizados
-            contexto = "Proporcione el contexto de los datos analizados..."  # Aquí iría el contexto de tu análisis
+            # Asumiendo que tienes un dataframe df cargado con datos relevantes
+            contexto = """
+            Los datos de ventas incluyen el número total de unidades vendidas, ingresos generados y comparaciones con metas establecidas para diferentes periodos.
+            """
+
             prompt_chat = f"""
 {contexto}
 
-Basado en los datos anteriores, responde esta pregunta de forma ejecutiva y detallada, como un experto analista en ventas y gerencia:
-{nueva_pregunta}
+Proporcione un análisis detallado de las ventas, identificando patrones clave, fluctuaciones y cualquier tendencia significativa.
+Además, brinde recomendaciones prácticas para la toma de decisiones ejecutivas basadas en los datos disponibles.
+Pregunta: {nueva_pregunta}
 """
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "Eres un asesor gerencial experto en ventas y análisis de datos."},
+                    {"role": "system", "content": "Eres un experto analista de ventas y gerencia."},
                     {"role": "user", "content": prompt_chat}
                 ]
             )
