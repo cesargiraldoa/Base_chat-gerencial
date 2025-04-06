@@ -145,10 +145,13 @@ if st.session_state.chat_history:
     pdf_output = io.BytesIO()
     pdf.output(pdf_output)  # Genera el archivo PDF en la memoria
     
+    # Asegúrate de volver al inicio del flujo de bytes antes de la descarga
+    pdf_output.seek(0)
+    
     # Usar el objeto PDF en memoria para la descarga
     st.download_button(
         label="📄 Exportar como PDF",
-        data=pdf_output.getvalue(),
+        data=pdf_output,
         file_name="chat_gerencial.pdf",
         mime="application/pdf"
     )
