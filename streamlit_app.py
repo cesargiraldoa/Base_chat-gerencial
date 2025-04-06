@@ -81,182 +81,66 @@ if archivo:
             df['hora'] = df['hora'].astype(str)
             df['dia_semana'] = df['fecha'].dt.day_name()
 
-            respuesta += "
+            respuesta = ""
 
-📊 **Análisis Gerencial Personalizado:**
-"
-respuesta += "🔹 Como CEO: este comportamiento impacta directamente en la estrategia organizacional. Se debe alinear el plan comercial con los resultados proyectados.
-"
-respuesta += "🔹 Como Director Comercial: identifique productos y sucursales con mejor rendimiento para replicar tácticas efectivas. Refuerce zonas o segmentos rezagados.
-"
-respuesta += "🔹 Como Experto en Analítica de Ventas: profundice el análisis por cliente, segmento, canal y estacionalidad. Use esta información para ajustar promociones o portafolio.
-"
-respuesta += "📌 Recomendación: Active alertas tempranas si se detectan tendencias negativas o caídas abruptas. Compare el desempeño contra la meta mensual y planifique acciones correctivas si es necesario."
-:**
-"
-respuesta += "Como experto en analítica de ventas, se observa que esta tendencia sugiere una "
-respuesta += "aceleración en el desempeño comercial" if 'positiva' in respuesta else "alerta de posible caída en las ventas" + ". "
-respuesta += "Es clave revisar factores como promociones, comportamiento por sucursal, campañas activas y rendimiento de productos clave. "
-respuesta += "Además, se recomienda evaluar la estacionalidad del mercado y reforzar estrategias en los puntos débiles identificados."
             if any(kw in pregunta.lower() for kw in ["tendencia", "evolución", "ventas por mes"]):
                 ventas_periodo, variacion_periodo = calcular_tendencia(df, columna_ventas, periodos="mensual")
                 if len(ventas_periodo) < 2:
-                    respuesta += "
-
-📊 **Análisis Gerencial Personalizado:**
-"
-respuesta += "🔹 Como CEO: este comportamiento impacta directamente en la estrategia organizacional. Se debe alinear el plan comercial con los resultados proyectados.
-"
-respuesta += "🔹 Como Director Comercial: identifique productos y sucursales con mejor rendimiento para replicar tácticas efectivas. Refuerce zonas o segmentos rezagados.
-"
-respuesta += "🔹 Como Experto en Analítica de Ventas: profundice el análisis por cliente, segmento, canal y estacionalidad. Use esta información para ajustar promociones o portafolio.
-"
-respuesta += "📌 Recomendación: Active alertas tempranas si se detectan tendencias negativas o caídas abruptas. Compare el desempeño contra la meta mensual y planifique acciones correctivas si es necesario."
-:**
-"
-respuesta += "Como experto en analítica de ventas, se observa que esta tendencia sugiere una "
-respuesta += "aceleración en el desempeño comercial" if 'positiva' in respuesta else "alerta de posible caída en las ventas" + ". "
-respuesta += "Es clave revisar factores como promociones, comportamiento por sucursal, campañas activas y rendimiento de productos clave. "
-respuesta += "Además, se recomienda evaluar la estacionalidad del mercado y reforzar estrategias en los puntos débiles identificados."
+                    respuesta = "No hay suficientes datos de meses anteriores para calcular la tendencia mensual."
                 else:
                     tendencia = "positiva" if variacion_periodo.iloc[-1] > 0 else "negativa"
                     variacion_texto = f" ({variacion_periodo.iloc[-1]:.2f}%)"
-                    respuesta += "
-
-📊 **Análisis Gerencial Personalizado:**
-"
-respuesta += "🔹 Como CEO: este comportamiento impacta directamente en la estrategia organizacional. Se debe alinear el plan comercial con los resultados proyectados.
-"
-respuesta += "🔹 Como Director Comercial: identifique productos y sucursales con mejor rendimiento para replicar tácticas efectivas. Refuerce zonas o segmentos rezagados.
-"
-respuesta += "🔹 Como Experto en Analítica de Ventas: profundice el análisis por cliente, segmento, canal y estacionalidad. Use esta información para ajustar promociones o portafolio.
-"
-respuesta += "📌 Recomendación: Active alertas tempranas si se detectan tendencias negativas o caídas abruptas. Compare el desempeño contra la meta mensual y planifique acciones correctivas si es necesario."
-:**
-"
-respuesta += "Como experto en analítica de ventas, se observa que esta tendencia sugiere una "
-respuesta += "aceleración en el desempeño comercial" if 'positiva' in respuesta else "alerta de posible caída en las ventas" + ". "
-respuesta += "Es clave revisar factores como promociones, comportamiento por sucursal, campañas activas y rendimiento de productos clave. "
-respuesta += "Además, se recomienda evaluar la estacionalidad del mercado y reforzar estrategias en los puntos débiles identificados."
+                    respuesta = f"La tendencia en ventas es {tendencia}{variacion_texto} para el periodo {ventas_periodo.index[-1]}."
                     fig = px.bar(x=ventas_periodo.index.astype(str), y=ventas_periodo.values,
                                  labels={'x': 'Mes', 'y': 'Ventas'}, title="Ventas por Mes",
                                  color_discrete_sequence=['#00BFFF'])
                     fig.update_layout(height=300, margin=dict(t=30, b=30))
                     st.plotly_chart(fig, use_container_width=True)
+
             elif any(kw in pregunta.lower() for kw in ["promedio de ventas", "promedio mensual"]):
                 promedio_mensual = df.groupby('mes')[columna_ventas].mean()
                 promedio_general = promedio_mensual.mean()
-                respuesta += "
-
-📊 **Análisis Gerencial Personalizado:**
-"
-respuesta += "🔹 Como CEO: este comportamiento impacta directamente en la estrategia organizacional. Se debe alinear el plan comercial con los resultados proyectados.
-"
-respuesta += "🔹 Como Director Comercial: identifique productos y sucursales con mejor rendimiento para replicar tácticas efectivas. Refuerce zonas o segmentos rezagados.
-"
-respuesta += "🔹 Como Experto en Analítica de Ventas: profundice el análisis por cliente, segmento, canal y estacionalidad. Use esta información para ajustar promociones o portafolio.
-"
-respuesta += "📌 Recomendación: Active alertas tempranas si se detectan tendencias negativas o caídas abruptas. Compare el desempeño contra la meta mensual y planifique acciones correctivas si es necesario."
-:**
-"
-respuesta += "Como experto en analítica de ventas, se observa que esta tendencia sugiere una "
-respuesta += "aceleración en el desempeño comercial" if 'positiva' in respuesta else "alerta de posible caída en las ventas" + ". "
-respuesta += "Es clave revisar factores como promociones, comportamiento por sucursal, campañas activas y rendimiento de productos clave. "
-respuesta += "Además, se recomienda evaluar la estacionalidad del mercado y reforzar estrategias en los puntos débiles identificados."
+                respuesta = f"El promedio de ventas mensual es {promedio_general:,.2f} unidades."
                 fig = px.bar(x=promedio_mensual.index.astype(str), y=promedio_mensual.values,
                              labels={'x': 'Mes', 'y': 'Promedio'}, title="Promedio de Ventas por Mes",
                              color_discrete_sequence=['#9370DB'])
                 fig.update_layout(height=300, margin=dict(t=30, b=30))
                 st.plotly_chart(fig, use_container_width=True)
+
             elif "ventas por hora" in pregunta.lower():
                 ventas_hora = df.groupby('hora')[columna_ventas].sum().sort_index()
-                respuesta += "
-
-📊 **Análisis Gerencial Personalizado:**
-"
-respuesta += "🔹 Como CEO: este comportamiento impacta directamente en la estrategia organizacional. Se debe alinear el plan comercial con los resultados proyectados.
-"
-respuesta += "🔹 Como Director Comercial: identifique productos y sucursales con mejor rendimiento para replicar tácticas efectivas. Refuerce zonas o segmentos rezagados.
-"
-respuesta += "🔹 Como Experto en Analítica de Ventas: profundice el análisis por cliente, segmento, canal y estacionalidad. Use esta información para ajustar promociones o portafolio.
-"
-respuesta += "📌 Recomendación: Active alertas tempranas si se detectan tendencias negativas o caídas abruptas. Compare el desempeño contra la meta mensual y planifique acciones correctivas si es necesario."
-:**
-"
-respuesta += "Como experto en analítica de ventas, se observa que esta tendencia sugiere una "
-respuesta += "aceleración en el desempeño comercial" if 'positiva' in respuesta else "alerta de posible caída en las ventas" + ". "
-respuesta += "Es clave revisar factores como promociones, comportamiento por sucursal, campañas activas y rendimiento de productos clave. "
-respuesta += "Además, se recomienda evaluar la estacionalidad del mercado y reforzar estrategias en los puntos débiles identificados."
+                respuesta = "Ventas por hora:\n" + str(ventas_hora)
                 fig = px.bar(x=ventas_hora.index, y=ventas_hora.values, labels={'x': 'Hora', 'y': 'Ventas'},
                              title="Ventas por Hora", color_discrete_sequence=['#1E90FF'])
                 fig.update_layout(height=300, margin=dict(t=30, b=30))
                 st.plotly_chart(fig, use_container_width=True)
+
             elif "ventas por día" in pregunta.lower() or "ventas por dia" in pregunta.lower():
                 dias_orden = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
                 ventas_dia = df.groupby('dia_semana')[columna_ventas].sum().reindex(dias_orden)
-                respuesta += "
-
-📊 **Análisis Gerencial Personalizado:**
-"
-respuesta += "🔹 Como CEO: este comportamiento impacta directamente en la estrategia organizacional. Se debe alinear el plan comercial con los resultados proyectados.
-"
-respuesta += "🔹 Como Director Comercial: identifique productos y sucursales con mejor rendimiento para replicar tácticas efectivas. Refuerce zonas o segmentos rezagados.
-"
-respuesta += "🔹 Como Experto en Analítica de Ventas: profundice el análisis por cliente, segmento, canal y estacionalidad. Use esta información para ajustar promociones o portafolio.
-"
-respuesta += "📌 Recomendación: Active alertas tempranas si se detectan tendencias negativas o caídas abruptas. Compare el desempeño contra la meta mensual y planifique acciones correctivas si es necesario."
-:**
-"
-respuesta += "Como experto en analítica de ventas, se observa que esta tendencia sugiere una "
-respuesta += "aceleración en el desempeño comercial" if 'positiva' in respuesta else "alerta de posible caída en las ventas" + ". "
-respuesta += "Es clave revisar factores como promociones, comportamiento por sucursal, campañas activas y rendimiento de productos clave. "
-respuesta += "Además, se recomienda evaluar la estacionalidad del mercado y reforzar estrategias en los puntos débiles identificados."
+                respuesta = "Ventas por día de la semana:\n" + str(ventas_dia)
                 fig = px.bar(x=ventas_dia.index, y=ventas_dia.values, labels={'x': 'Día', 'y': 'Ventas'},
                              title="Ventas por Día de la Semana", color_discrete_sequence=['#FFD700'])
                 fig.update_layout(height=300, margin=dict(t=30, b=30))
                 st.plotly_chart(fig, use_container_width=True)
+
             elif "comparación trimestral" in pregunta.lower():
                 ventas_trimestre = df.groupby('trimestre')[columna_ventas].sum()
-                respuesta += "
-
-📊 **Análisis Gerencial Personalizado:**
-"
-respuesta += "🔹 Como CEO: este comportamiento impacta directamente en la estrategia organizacional. Se debe alinear el plan comercial con los resultados proyectados.
-"
-respuesta += "🔹 Como Director Comercial: identifique productos y sucursales con mejor rendimiento para replicar tácticas efectivas. Refuerce zonas o segmentos rezagados.
-"
-respuesta += "🔹 Como Experto en Analítica de Ventas: profundice el análisis por cliente, segmento, canal y estacionalidad. Use esta información para ajustar promociones o portafolio.
-"
-respuesta += "📌 Recomendación: Active alertas tempranas si se detectan tendencias negativas o caídas abruptas. Compare el desempeño contra la meta mensual y planifique acciones correctivas si es necesario."
-:**
-"
-respuesta += "Como experto en analítica de ventas, se observa que esta tendencia sugiere una "
-respuesta += "aceleración en el desempeño comercial" if 'positiva' in respuesta else "alerta de posible caída en las ventas" + ". "
-respuesta += "Es clave revisar factores como promociones, comportamiento por sucursal, campañas activas y rendimiento de productos clave. "
-respuesta += "Además, se recomienda evaluar la estacionalidad del mercado y reforzar estrategias en los puntos débiles identificados."
+                respuesta = "Ventas por trimestre:\n" + str(ventas_trimestre)
                 fig = px.bar(x=ventas_trimestre.index.astype(str), y=ventas_trimestre.values,
                              labels={'x': 'Trimestre', 'y': 'Ventas'}, title="Ventas por Trimestre",
                              color_discrete_sequence=['#008080'])
                 fig.update_layout(height=300, margin=dict(t=30, b=30))
                 st.plotly_chart(fig, use_container_width=True)
-            else:
-                respuesta += "
 
-📊 **Análisis Gerencial Personalizado:**
-"
-respuesta += "🔹 Como CEO: este comportamiento impacta directamente en la estrategia organizacional. Se debe alinear el plan comercial con los resultados proyectados.
-"
-respuesta += "🔹 Como Director Comercial: identifique productos y sucursales con mejor rendimiento para replicar tácticas efectivas. Refuerce zonas o segmentos rezagados.
-"
-respuesta += "🔹 Como Experto en Analítica de Ventas: profundice el análisis por cliente, segmento, canal y estacionalidad. Use esta información para ajustar promociones o portafolio.
-"
-respuesta += "📌 Recomendación: Active alertas tempranas si se detectan tendencias negativas o caídas abruptas. Compare el desempeño contra la meta mensual y planifique acciones correctivas si es necesario."
-:**
-"
-respuesta += "Como experto en analítica de ventas, se observa que esta tendencia sugiere una "
-respuesta += "aceleración en el desempeño comercial" if 'positiva' in respuesta else "alerta de posible caída en las ventas" + ". "
-respuesta += "Es clave revisar factores como promociones, comportamiento por sucursal, campañas activas y rendimiento de productos clave. "
-respuesta += "Además, se recomienda evaluar la estacionalidad del mercado y reforzar estrategias en los puntos débiles identificados."
+            # Agregar análisis gerencial al final
+            if respuesta:
+                respuesta += "\n\n📊 **Análisis Gerencial Personalizado:**\n"
+                respuesta += "🔹 Como CEO: evalúe el impacto estratégico de este comportamiento y su alineación con los objetivos corporativos.\n"
+                respuesta += "🔹 Como Director Comercial: identifique productos y regiones clave, y ajuste campañas o incentivos.\n"
+                respuesta += "🔹 Como Analista de Ventas: revise patrones, desvíos y puntos críticos de mejora.\n"
+                respuesta += "📌 Recomendación: implemente acciones correctivas o de impulso según el análisis. Priorice decisiones basadas en datos."
+
             if "chat_history" not in st.session_state:
                 st.session_state.chat_history = []
             st.session_state.chat_history.append(("Pregunta: " + pregunta, "Respuesta: " + respuesta))
