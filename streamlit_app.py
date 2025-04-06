@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
+import plotly.express as px
 
 # Configura la página
 st.set_page_config(page_title="Chat Gerencial - Análisis de Ventas", layout="wide")
@@ -63,12 +63,11 @@ if archivo:
         for opcion in opciones_pregunta:
             if st.button(opcion, key=opcion):
                 boton_presionado = opcion
-                st.session_state.pregunta_auto = opcion  # Guardar en estado para ejecución automática
+                st.session_state.pregunta_auto = opcion
         st.markdown("---")
         pregunta = st.text_area("Escribe tu pregunta sobre las ventas:", value=boton_presionado or seleccion)
         enviar = st.button("Enviar pregunta", key="enviar")
 
-    # Determinar si hay una pregunta automática a ejecutar
     auto_pregunta = st.session_state.pop("pregunta_auto", None)
     ejecutar = enviar or auto_pregunta
     pregunta = auto_pregunta or pregunta
@@ -91,45 +90,43 @@ if archivo:
                     tendencia = "positiva" if variacion_periodo.iloc[-1] > 0 else "negativa"
                     variacion_texto = f" ({variacion_periodo.iloc[-1]:.2f}%)"
                     respuesta = f"La tendencia en ventas es {tendencia}{variacion_texto} para el periodo {ventas_periodo.index[-1]}."
-                    fig, ax = plt.subplots(figsize=(6, 3))
-                    ventas_periodo.plot(kind='bar', ax=ax, color='skyblue')
-                    ax.set_title("Ventas por Mes")
-                    ax.set_ylabel("Ventas")
-                    st.pyplot(fig)
+                    fig = px.bar(x=ventas_periodo.index.astype(str), y=ventas_periodo.values,
+                                 labels={'x': 'Mes', 'y': 'Ventas'}, title="Ventas por Mes",
+                                 color_discrete_sequence=['#00BFFF'])
+                    fig.update_layout(height=300, margin=dict(t=30, b=30))
+                    st.plotly_chart(fig, use_container_width=True)
             elif any(kw in pregunta.lower() for kw in ["promedio de ventas", "promedio mensual"]):
                 promedio_mensual = df.groupby('mes')[columna_ventas].mean()
                 promedio_general = promedio_mensual.mean()
                 respuesta = f"El promedio de ventas mensual es {promedio_general:,.2f} unidades."
-                fig, ax = plt.subplots(figsize=(6, 3))
-                promedio_mensual.plot(kind='bar', ax=ax, color='mediumpurple')
-                ax.set_title("Promedio de Ventas por Mes")
-                ax.set_ylabel("Promedio de Ventas")
-                st.pyplot(fig)
+                fig = px.bar(x=promedio_mensual.index.astype(str), y=promedio_mensual.values,
+                             labels={'x': 'Mes', 'y': 'Promedio'}, title="Promedio de Ventas por Mes",
+                             color_discrete_sequence=['#9370DB'])
+                fig.update_layout(height=300, margin=dict(t=30, b=30))
+                st.plotly_chart(fig, use_container_width=True)
             elif "ventas por hora" in pregunta.lower():
                 ventas_hora = df.groupby('hora')[columna_ventas].sum().sort_index()
                 respuesta = "Ventas por hora:\n" + str(ventas_hora)
-                fig, ax = plt.subplots(figsize=(6, 3))
-                ventas_hora.plot(kind='bar', ax=ax, color='lightblue')
-                ax.set_title("Ventas por Hora")
-                ax.set_ylabel("Ventas")
-                st.pyplot(fig)
+                fig = px.bar(x=ventas_hora.index, y=ventas_hora.values, labels={'x': 'Hora', 'y': 'Ventas'},
+                             title="Ventas por Hora", color_discrete_sequence=['#1E90FF'])
+                fig.update_layout(height=300, margin=dict(t=30, b=30))
+                st.plotly_chart(fig, use_container_width=True)
             elif "ventas por día" in pregunta.lower() or "ventas por dia" in pregunta.lower():
-                ventas_dia = df.groupby('dia_semana')[columna_ventas].sum().reindex([
-                    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'])
+                dias_orden = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+                ventas_dia = df.groupby('dia_semana')[columna_ventas].sum().reindex(dias_orden)
                 respuesta = "Ventas por día de la semana:\n" + str(ventas_dia)
-                fig, ax = plt.subplots(figsize=(6, 3))
-                ventas_dia.plot(kind='bar', ax=ax, color='gold')
-                ax.set_title("Ventas por Día de la Semana")
-                ax.set_ylabel("Ventas")
-                st.pyplot(fig)
+                fig = px.bar(x=ventas_dia.index, y=ventas_dia.values, labels={'x': 'Día', 'y': 'Ventas'},
+                             title="Ventas por Día de la Semana", color_discrete_sequence=['#FFD700'])
+                fig.update_layout(height=300, margin=dict(t=30, b=30))
+                st.plotly_chart(fig, use_container_width=True)
             elif "comparación trimestral" in pregunta.lower():
                 ventas_trimestre = df.groupby('trimestre')[columna_ventas].sum()
                 respuesta = "Ventas por trimestre:\n" + str(ventas_trimestre)
-                fig, ax = plt.subplots(figsize=(6, 3))
-                ventas_trimestre.plot(kind='bar', ax=ax, color='teal')
-                ax.set_title("Ventas por Trimestre")
-                ax.set_ylabel("Ventas")
-                st.pyplot(fig)
+                fig = px.bar(x=ventas_trimestre.index.astype(str), y=ventas_trimestre.values,
+                             labels={'x': 'Trimestre', 'y': 'Ventas'}, title="Ventas por Trimestre",
+                             color_discrete_sequence=['#008080'])
+                fig.update_layout(height=300, margin=dict(t=30, b=30))
+                st.plotly_chart(fig, use_container_width=True)
             else:
                 respuesta = "Lo siento, no puedo responder a esa pregunta en este momento. Intenta otra consulta."
             if "chat_history" not in st.session_state:
