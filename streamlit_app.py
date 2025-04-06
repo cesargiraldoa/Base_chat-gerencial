@@ -1,4 +1,3 @@
-# streamlit_app.py
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -10,9 +9,6 @@ from openai import OpenAI
 import io
 from fpdf import FPDF
 import base64
-import requests
-
-
 
 # Configura el cliente de OpenAI usando el secreto
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
@@ -117,64 +113,3 @@ Basado en los datos anteriores, responde esta pregunta de forma ejecutiva:
                 messages=[
                     {"role": "system", "content": "Eres un asesor gerencial experto en ventas y análisis de datos."},
                     {"role": "user", "content": prompt_chat}
-                ]
-            )
-            respuesta = respuesta_chat.choices[0].message.content
-            st.session_state.chat_history.append((nueva_pregunta, respuesta))
-            st.experimental_rerun()
-        except Exception as e:
-            st.warning(f"⚠️ Error al generar análisis: {e}")
-
-    for i, (user, bot) in enumerate(st.session_state.chat_history):
-        st.markdown(f"**🧑 Tú:** {user}")
-        st.markdown(f"**🤖 Asistente:** {bot}")
-
-    # Exportar chat como archivo de texto
-    if st.session_state.chat_history:
-        chat_export = "\n\n".join([f"Tú: {u}\nAsistente: {b}" for u, b in st.session_state.chat_history])
-        buffer = io.StringIO()
-        buffer.write(chat_export)
-        st.download_button("📥 Exportar conversación (.txt)", buffer.getvalue(), file_name="chat_gerencial.txt")
-
-        # Exportar chat como PDF
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_auto_page_break(auto=True, margin=15)
-        pdf.set_font("Arial", size=12)
-        for u, b in st.session_state.chat_history:
-            pdf.multi_cell(0, 10, f"Tú: {u}\nAsistente: {b}\n")
-        pdf_output = io.BytesIO()
-        pdf.output(pdf_output)
-        st.download_button(
-            label="📄 Exportar como PDF",
-            data=pdf_output.getvalue(),
-            file_name="chat_gerencial.pdf",
-            mime="application/pdf"
-        )
-
-        # Subir archivos generados a GitHub
-        def upload_to_github(file_name, file_content):
-            """Sube un archivo al repositorio de GitHub usando la API"""
-            url = f"https://api.github.com/repos/{st.secrets['GITHUB_USERNAME']}/{st.secrets['GITHUB_REPO']}/contents/{file_name}"
-            content_base64 = base64.b64encode(file_content).decode('utf-8')
-
-            data = {
-                "message": f"Agregando {file_name} desde Streamlit",
-                "content": content_base64,
-                "branch": "main"
-            }
-
-            headers = {
-                "Authorization": f"token {st.secrets['GITHUB_TOKEN']}"
-            }
-
-            response = requests.put(url, json=data, headers=headers)
-            if response.status_code == 201:
-                st.success(f"Archivo '{file_name}' subido exitosamente a GitHub.")
-            else:
-                st.error(f"Error al subir el archivo: {response.json()}")
-
-        # Subir los archivos generados
-        upload_to_github("chat_gerencial.txt", chat_export.encode())
-        upload_to_github("chat_gerencial.pdf", pdf_output.getvalue())
-
