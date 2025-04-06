@@ -3,7 +3,6 @@ import openai
 import pandas as pd
 from fpdf import FPDF
 import io
-import os
 
 # Establecer tu clave de API de OpenAI
 openai.api_key = "tu_api_key_de_openai"
@@ -30,14 +29,15 @@ def obtener_respuesta(pregunta):
     # Agregar pregunta al historial
     st.session_state.chat_history.append({"role": "user", "content": pregunta})
 
-    # Generar la respuesta utilizando el modelo de OpenAI
+    # Generar la respuesta utilizando el modelo de OpenAI (nueva versión)
     try:
-        response = openai.ChatCompletion.create(
+        response = openai.Completion.create(
             model="gpt-3.5-turbo",  # O la versión más actual
-            messages=st.session_state.chat_history
+            prompt=pregunta,
+            max_tokens=150
         )
 
-        respuesta = response['choices'][0]['message']['content']
+        respuesta = response['choices'][0]['text']
         st.session_state.chat_history.append({"role": "assistant", "content": respuesta})
         return respuesta
     except Exception as e:
