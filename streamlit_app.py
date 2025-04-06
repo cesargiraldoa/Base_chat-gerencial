@@ -15,75 +15,48 @@ st.title("🤖 Chat Gerencial - Análisis de Ventas")
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# Función para manejar las respuestas y el historial
-def handle_response():
-    nueva_pregunta = st.session_state["input_question"]
-    if nueva_pregunta:
-        try:
-            # Si tienes un archivo cargado, procesa los datos de ventas
-            if 'df' in st.session_state:
-                # Verifica si la columna 'ventas' está en el dataframe
-                if 'ventas' in st.session_state['df'].columns:
-                    # Datos extraídos del archivo Excel
-                    ventas_data = st.session_state['df']
-
-                    # Genera un contexto con datos específicos de ventas
-                    ventas_totales = ventas_data['ventas'].sum()
-                    ventas_promedio = ventas_data['ventas'].mean()
-                    ventas_maximas = ventas_data['ventas'].max()
-                    ventas_minimas = ventas_data['ventas'].min()
-
-                    contexto = f"""
-                    Se analizaron los datos de ventas con los siguientes resultados:
-                    - Ventas totales: {ventas_totales}
-                    - Ventas promedio: {ventas_promedio}
-                    - Ventas máximas en un periodo: {ventas_maximas}
-                    - Ventas mínimas en un periodo: {ventas_minimas}
-
-                    Estos datos proporcionan una base sólida para analizar las tendencias de ventas a lo largo del tiempo y compararlas con metas establecidas.
-                    """
-                else:
-                    st.warning("⚠️ El archivo cargado no contiene la columna 'ventas'. Asegúrate de que los datos estén correctamente estructurados.")
-                    return
-
-            else:
-                # En caso de que no haya datos cargados
-                contexto = "No se han cargado datos de ventas aún. Por favor, sube un archivo Excel de ventas."
-
-            prompt_chat = f"""
-{contexto}
-
-Pregunta: {nueva_pregunta}
-"""
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "Eres un experto analista en ventas y gerencia."},
-                    {"role": "user", "content": prompt_chat}
-                ]
-            )
-            respuesta = response.choices[0].message.content
-            # Añadir la pregunta y respuesta al historial
-            st.session_state.chat_history.append((nueva_pregunta, respuesta))
-            st.session_state["input_question"] = ""  # Limpiar la entrada de la nueva pregunta
-        except Exception as e:
-            st.warning(f"⚠️ Error al generar análisis: {e}")
-
-# Subir archivo Excel de ventas
+# Cargar archivo Excel de ventas
 archivo = st.file_uploader("Cargar archivo Excel de ventas", type=["xlsx"])
 
-if archivo:
-    df = pd.read_excel(archivo)
-    st.session_state['df'] = df  # Guardar el dataframe en el estado de la sesión
-    st.subheader("📊 Vista general de los datos")
-    st.dataframe(df)
+# Procesar los datos
+def handle_response(df):
+    if archivo:
+        try:
+            # Realizar análisis de ventas
+            ventas = df['ventas_reales']
+            meta_producto = df['meta_producto']
+            meta_sucursal = df['meta_sucursal']
+            meta_global = df['meta_global']
+
+            # Total de ventas por sucursal
+            ventas_sucursal = df.groupby('sucursal')['ventas_reales'].sum()
+
+            # Análisis por producto
+            ventas_producto = df.groupby('producto')['ventas_reales'].sum()
+
+            # Análisis de cumplimiento de metas
+            cumplimiento_producto = df['ventas_reales'] / df['meta_producto'] * 100
+            cumplimiento_sucursal = df.groupby('sucursal')['ventas_reales'].sum() / df.groupby('sucursal')['meta_sucursal'].sum() * 100
+
+            respuesta = f"Análisis de ventas y cumplimiento de metas:\n\n"
+            respuesta += f"- Ventas totales por sucursal:\n{ventas_sucursal}\n"
+            respuesta += f"- Ventas totales por producto:\n{ventas_producto}\n"
+            respuesta += f"- Cumplimiento de metas por producto:\n{cumplimiento_producto.mean():.2f}%\n"
+            respuesta += f"- Cumplimiento de metas por sucursal:\n{cumplimiento_sucursal}\n"
+
+            # Añadir la pregunta y respuesta al historial
+            st.session_state.chat_history.append(("Análisis de ventas y metas", respuesta))
+            st.session_state["input_question"] = ""  # Limpiar la entrada de la nueva pregunta
+
+        except Exception as e:
+            st.warning(f"⚠️ Error al generar análisis: {e}")
 
 # Campo para ingresar nueva pregunta
 with st.form(key="question_form"):
     nueva_pregunta = st.text_input("Escribe tu pregunta:", key="input_question")
     submit_button = st.form_submit_button("Enviar pregunta")
     if submit_button:
-        handle_response()
+        handle_response(df)
 
 # Mostrar el historial de chat (pregunta y respuesta)
 for i, (user, bot) in enumerate(st.session_state.chat_history):
