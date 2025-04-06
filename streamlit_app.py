@@ -1,114 +1,150 @@
 import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+import numpy as np
 from openai import OpenAI
-from fpdf import FPDF
 import io
+from fpdf import FPDF
+import base64
 
 # Configura el cliente de OpenAI usando el secreto
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-# Configuración de la página
 st.set_page_config(page_title="Chat Gerencial - Ventas", layout="wide")
 st.title("🤖 Chat Gerencial - Análisis de Ventas")
 
-# Si no existe el historial de preguntas, inicialízalo
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
-
-# Función para manejar las respuestas y el historial
-def handle_response():
-    nueva_pregunta = st.session_state["input_question"]
-    if nueva_pregunta:
-        try:
-            contexto = "Proporcione el contexto de los datos analizados..."  # Aquí iría el contexto de tu análisis
-            prompt_chat = f"""
-{contexto}
-
-Basado en los datos anteriores, responde esta pregunta de forma ejecutiva:
-{nueva_pregunta}
-"""
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "Eres un asesor gerencial experto en ventas y análisis de datos."},
-                    {"role": "user", "content": prompt_chat}
-                ]
-            )
-            respuesta = response.choices[0].message.content
-            # Añadir la pregunta y respuesta al historial
-            st.session_state.chat_history.append((nueva_pregunta, respuesta))
-            st.session_state["input_question"] = ""  # Limpiar la entrada de la nueva pregunta
-        except Exception as e:
-            st.warning(f"⚠️ Error al generar análisis: {e}")
-
-# Subir archivo Excel de ventas
+# Subida de archivo
 archivo = st.file_uploader("Cargar archivo Excel de ventas", type=["xlsx"])
 
 if archivo:
     df = pd.read_excel(archivo)
+
     st.subheader("📊 Vista general de los datos")
     st.dataframe(df)
 
-# Campo para ingresar nueva pregunta
-with st.form(key="question_form"):
-    # Cambiar el nombre del key para evitar el conflicto en la entrada de preguntas
-with st.form(key=f"question_form_{len(st.session_state.chat_history)}"):
-    nueva_pregunta = st.text_input("Escribe tu pregunta:", key=f"input_question_{len(st.session_state.chat_history)}")
-    submit_button = st.form_submit_button("Enviar pregunta")
+    st.subheader("📈 Resumen estadístico")
+    st.write(df.describe())
 
-    if submit_button and nueva_pregunta:
-        # Procesa la pregunta y muestra la respuesta
-        contexto = df.describe().to_string()
-        prompt_chat = f"""
-        {contexto}
+    # Mapa de calor de correlaciones
+    st.subheader("🔥 Mapa de calor de correlaciones")
+    fig, ax = plt.subplots()
+    sns.heatmap(df.select_dtypes(include=np.number).corr(), annot=True, fmt=".2f", cmap="coolwarm", ax=ax)
+    st.pyplot(fig)
 
-        Basado en los datos anteriores, responde esta pregunta de forma ejecutiva:
-        {nueva_pregunta}
-        """
+    # Clustering
+    st.subheader("🧠 Segmentación por Clústeres (KMeans)")
+    df_cluster = df.copy()
+    numeric_cols = df_cluster.select_dtypes(include=np.number).columns
+    scaler = StandardScaler()
+    df_scaled = scaler.fit_transform(df_cluster[numeric_cols])
 
-        try:
-            respuesta_chat = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "Eres un asesor gerencial experto en ventas y análisis de datos."},
-                    {"role": "user", "content": prompt_chat}
-                ]
-            )
-            respuesta = respuesta_chat.choices[0].message.content
-            st.session_state.chat_history.append((nueva_pregunta, respuesta))  # Agrega la pregunta y la respuesta a la historia
-            st.experimental_rerun()  # Esto permite que el formulario de la nueva pregunta se actualice
-        except Exception as e:
-            st.warning(f"⚠️ Error al generar análisis: {e}")
+    kmeans = KMeans(n_clusters=3, random_state=42)
+    clusters = kmeans.fit_predict(df_scaled)
+    df_cluster["Cluster"] = clusters
 
+    st.write("### 📄 Datos con Clúster asignado")
+    st.dataframe(df_cluster)
 
-# Mostrar el historial de chat (pregunta y respuesta)
-for i, (user, bot) in enumerate(st.session_state.chat_history):
-    st.markdown(f"**🧑 Tú:** {user}")
-    st.markdown(f"**🤖 Asistente:** {bot}")
+    # Gráfico de clúster en 2D
+    if len(numeric_cols) >= 2:
+        st.write("### 📌 Visualización de Clústeres")
+        fig2, ax2 = plt.subplots()
+        scatter = ax2.scatter(df_scaled[:, 0], df_scaled[:, 1], c=clusters, cmap="viridis")
+        ax2.set_xlabel(numeric_cols[0])
+        ax2.set_ylabel(numeric_cols[1])
+        ax2.set_title("Distribución de clústeres")
+        st.pyplot(fig2)
 
-    # Opción para exportar la conversación
-    if st.button(f"📥 Exportar conversación .txt (Pregunta {i+1})"):
-        chat_export = f"Tú: {user}\nAsistente: {bot}\n"
+    # Descripción automática de clústeres usando OpenAI
+    st.subheader("🧠 Descripción de Clústeres (IA)")
+    try:
+        resumen_cluster = df_cluster.groupby("Cluster")[numeric_cols].mean().reset_index()
+        resumen_markdown = resumen_cluster.to_markdown(index=False)
+
+        prompt = f"""
+Eres un analista experto. Describe los siguientes clústeres en términos de su comportamiento y características. Proporciona recomendaciones para cada clúster. Usa un lenguaje claro y ejecutivo.
+
+Resumen:
+{resumen_markdown}
+"""
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "Eres un experto en inteligencia de negocios."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        descripcion = response.choices[0].message.content
+        st.markdown(descripcion)
+    except Exception as e:
+        st.warning(f"⚠️ Error al generar descripción con IA: {e}")
+
+    # Chat tipo conversación
+    st.subheader("💬 Chat Gerencial Interactivo")
+
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
+
+    # Genera una clave dinámica única para cada pregunta
+    question_key = f"input_question_{len(st.session_state.chat_history)}"
+
+    # Crear un nuevo formulario para cada pregunta
+    with st.form(key=f"form_{question_key}"):
+        nueva_pregunta = st.text_input("Escribe tu pregunta:", key=question_key)
+        submit_button = st.form_submit_button("Enviar pregunta")
+
+        if submit_button and nueva_pregunta:
+            # Procesar la nueva pregunta
+            contexto = df.describe().to_string()
+            prompt_chat = f"""
+            {contexto}
+
+            Basado en los datos anteriores, responde esta pregunta de forma ejecutiva:
+            {nueva_pregunta}
+            """
+
+            try:
+                respuesta_chat = client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": "Eres un asesor gerencial experto en ventas y análisis de datos."},
+                        {"role": "user", "content": prompt_chat}
+                    ]
+                )
+                respuesta = respuesta_chat.choices[0].message.content
+                st.session_state.chat_history.append((nueva_pregunta, respuesta))  # Guardar la pregunta y respuesta en la historia
+                st.experimental_rerun()  # Recargar para mostrar la nueva pregunta y respuesta
+            except Exception as e:
+                st.warning(f"⚠️ Error al generar análisis: {e}")
+
+    # Mostrar preguntas y respuestas
+    for i, (user, bot) in enumerate(st.session_state.chat_history):
+        st.markdown(f"**🧑 Tú:** {user}")
+        st.markdown(f"**🤖 Asistente:** {bot}")
+
+    # Exportar chat como archivo de texto
+    if st.session_state.chat_history:
+        chat_export = "\n\n".join([f"Tú: {u}\nAsistente: {b}" for u, b in st.session_state.chat_history])
         buffer = io.StringIO()
         buffer.write(chat_export)
-        st.download_button("Descargar como archivo .txt", buffer.getvalue(), file_name=f"chat_gerencial_{i+1}.txt")
-        
-        # Exportar como PDF
+        st.download_button("📥 Exportar conversación (.txt)", buffer.getvalue(), file_name="chat_gerencial.txt")
+
+        # Exportar chat como PDF
         pdf = FPDF()
         pdf.add_page()
         pdf.set_auto_page_break(auto=True, margin=15)
         pdf.set_font("Arial", size=12)
-        pdf.multi_cell(0, 10, f"Tú: {user}\nAsistente: {bot}\n")
+        for u, b in st.session_state.chat_history:
+            pdf.multi_cell(0, 10, f"Tú: {u}\nAsistente: {b}\n")
         pdf_output = io.BytesIO()
         pdf.output(pdf_output)
         st.download_button(
-            label=f"📄 Exportar como PDF (Pregunta {i+1})",
+            label="📄 Exportar como PDF",
             data=pdf_output.getvalue(),
-            file_name=f"chat_gerencial_{i+1}.pdf",
+            file_name="chat_gerencial.pdf",
             mime="application/pdf"
         )
 
-# Opción para limpiar el historial de chat
-if st.button("🧹 Limpiar chat"):
-    st.session_state.chat_history = []
-    st.experimental_rerun()
