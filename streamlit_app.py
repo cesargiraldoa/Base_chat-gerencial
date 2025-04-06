@@ -58,12 +58,15 @@ if archivo:
                 periodo = "mensual"
                 ventas_periodo, variacion_periodo = calcular_tendencia(df, columna_ventas, periodos=periodo)
                 tendencia = "positiva" if variacion_periodo.iloc[-1] > 0 else "negativa"
-                respuesta = f"La tendencia en ventas es {tendencia} para el periodo {ventas_periodo.index[-1]}."
+                variacion_texto = f" ({variacion_periodo.iloc[-1]:.2f}%)"
+                respuesta = f"La tendencia en ventas es {tendencia}{variacion_texto} para el periodo {ventas_periodo.index[-1]}."
 
                 fig, ax = plt.subplots()
-                ventas_periodo.plot(kind='bar', ax=ax)
+                ventas_periodo.plot(kind='bar', ax=ax, color='skyblue')
                 ax.set_title("Ventas por Mes")
                 ax.set_ylabel("Ventas")
+                ax.set_xlabel("Mes")
+                ax.grid(True, linestyle='--', alpha=0.6)
                 st.pyplot(fig)
 
             elif "comparación" in pregunta.lower():
@@ -73,7 +76,7 @@ if archivo:
                     respuesta = "Top 10 productos de mayor venta:\n" + str(top_productos)
 
                     fig, ax = plt.subplots()
-                    top_productos.plot(kind='bar', ax=ax)
+                    top_productos.plot(kind='bar', ax=ax, color='lightgreen')
                     ax.set_title("Top 10 Productos")
                     ax.set_ylabel("Ventas")
                     st.pyplot(fig)
@@ -84,7 +87,7 @@ if archivo:
                     respuesta = "Top 10 sucursales de mayor venta:\n" + str(top_sucursales)
 
                     fig, ax = plt.subplots()
-                    top_sucursales.plot(kind='bar', ax=ax)
+                    top_sucursales.plot(kind='bar', ax=ax, color='orange')
                     ax.set_title("Top 10 Sucursales")
                     ax.set_ylabel("Ventas")
                     st.pyplot(fig)
@@ -94,7 +97,7 @@ if archivo:
                 respuesta = "Total de ventas por sucursal:\n" + str(ventas_sucursal)
 
                 fig, ax = plt.subplots()
-                ventas_sucursal.plot(kind='bar', ax=ax)
+                ventas_sucursal.plot(kind='bar', ax=ax, color='salmon')
                 ax.set_title("Ventas por Sucursal")
                 ax.set_ylabel("Ventas")
                 st.pyplot(fig)
@@ -108,13 +111,13 @@ if archivo:
                 respuesta += f"Top 10 productos con menores ventas:\n{bottom_productos_venta}"
 
                 fig1, ax1 = plt.subplots()
-                top_productos_venta.plot(kind='bar', ax=ax1)
+                top_productos_venta.plot(kind='bar', ax=ax1, color='green')
                 ax1.set_title("Top 10 Productos - Mayor Venta")
                 ax1.set_ylabel("Ventas")
                 st.pyplot(fig1)
 
                 fig2, ax2 = plt.subplots()
-                bottom_productos_venta.plot(kind='bar', ax=ax2)
+                bottom_productos_venta.plot(kind='bar', ax=ax2, color='red')
                 ax2.set_title("Top 10 Productos - Menor Venta")
                 ax2.set_ylabel("Ventas")
                 st.pyplot(fig2)
