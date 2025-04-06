@@ -138,14 +138,16 @@ if st.session_state.chat_history:
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.set_font("Arial", size=12)
+    
+    # Añadir contenido del chat al PDF
     for u, b in st.session_state.chat_history:
         pdf.multi_cell(0, 10, f"Tú: {u}\nAsistente: {b}\n")
     
-    # Guardar el archivo PDF en un objeto en memoria
+    # Crear archivo PDF en memoria
     pdf_output = io.BytesIO()
-    pdf.output(pdf_output)  # Genera el archivo PDF en la memoria
+    pdf.output(pdf_output)  # Guardar el archivo PDF en memoria
     
-    # Asegúrate de volver al inicio del flujo de bytes antes de la descarga
+    # Asegurarse de volver al inicio del flujo de bytes antes de la descarga
     pdf_output.seek(0)
     
     # Usar el objeto PDF en memoria para la descarga
