@@ -57,17 +57,21 @@ if archivo:
             if any(kw in pregunta.lower() for kw in ["tendencia", "evolución", "ventas por mes"]):
                 periodo = "mensual"
                 ventas_periodo, variacion_periodo = calcular_tendencia(df, columna_ventas, periodos=periodo)
-                tendencia = "positiva" if variacion_periodo.iloc[-1] > 0 else "negativa"
-                variacion_texto = f" ({variacion_periodo.iloc[-1]:.2f}%)"
-                respuesta = f"La tendencia en ventas es {tendencia}{variacion_texto} para el periodo {ventas_periodo.index[-1]}."
 
-                fig, ax = plt.subplots()
-                ventas_periodo.plot(kind='bar', ax=ax, color='skyblue')
-                ax.set_title("Ventas por Mes")
-                ax.set_ylabel("Ventas")
-                ax.set_xlabel("Mes")
-                ax.grid(True, linestyle='--', alpha=0.6)
-                st.pyplot(fig)
+                if len(ventas_periodo) < 2:
+                    respuesta = "No hay suficientes datos de meses anteriores para calcular la tendencia mensual."
+                else:
+                    tendencia = "positiva" if variacion_periodo.iloc[-1] > 0 else "negativa"
+                    variacion_texto = f" ({variacion_periodo.iloc[-1]:.2f}%)"
+                    respuesta = f"La tendencia en ventas es {tendencia}{variacion_texto} para el periodo {ventas_periodo.index[-1]}."
+
+                    fig, ax = plt.subplots()
+                    ventas_periodo.plot(kind='bar', ax=ax, color='skyblue')
+                    ax.set_title("Ventas por Mes")
+                    ax.set_ylabel("Ventas")
+                    ax.set_xlabel("Mes")
+                    ax.grid(True, linestyle='--', alpha=0.6)
+                    st.pyplot(fig)
 
             elif "comparación" in pregunta.lower():
                 if "producto" in pregunta.lower():
