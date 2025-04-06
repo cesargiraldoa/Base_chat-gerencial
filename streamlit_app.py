@@ -17,27 +17,19 @@ if "chat_history" not in st.session_state:
 
 # Función para manejar las respuestas y el historial
 def handle_response():
-    nueva_pregunta = st.session_state.input_question  # Guardamos la pregunta
+    nueva_pregunta = st.session_state["input_question"]
     if nueva_pregunta:
         try:
-            # Descripción detallada para el contexto de un experto
-            contexto = """
-            Eres un experto analista en ventas y gerencia con años de experiencia, enfocado en proporcionar respuestas que permitan tomar decisiones informadas.
-            Tienes un profundo conocimiento sobre ventas, análisis de mercado, segmentación de clientes, comportamiento del consumidor y las mejores prácticas para optimizar las ventas de una empresa.
-            Tu objetivo es proporcionar recomendaciones estratégicas y ejecutivas que guíen las decisiones gerenciales de forma efectiva.
-            Debes ofrecer respuestas claras, fundamentadas, y con un enfoque práctico.
-            """
-
-            # Preparación del prompt para OpenAI
+            # Contexto de los datos analizados
+            contexto = "Proporcione el contexto de los datos analizados..."  # Aquí iría el contexto de tu análisis
             prompt_chat = f"""
 {contexto}
 
-Basado en los datos de ventas proporcionados, responde esta pregunta de forma ejecutiva y estratégica, enfocada en tomar decisiones clave para el negocio:
+Basado en los datos anteriores, responde esta pregunta de forma ejecutiva y detallada, como un experto analista en ventas y gerencia:
 {nueva_pregunta}
 """
-            # Llamada a la API de OpenAI para generar la respuesta
             response = client.chat.completions.create(
-                model="gpt-3.5-turbo",  # Usando el modelo más actualizado
+                model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "Eres un asesor gerencial experto en ventas y análisis de datos."},
                     {"role": "user", "content": prompt_chat}
@@ -46,7 +38,7 @@ Basado en los datos de ventas proporcionados, responde esta pregunta de forma ej
             respuesta = response.choices[0].message.content
             # Añadir la pregunta y respuesta al historial
             st.session_state.chat_history.append((nueva_pregunta, respuesta))
-            st.session_state.input_question = ""  # Limpiar la entrada de la nueva pregunta
+            st.session_state["input_question"] = ""  # Limpiar la entrada de la nueva pregunta
         except Exception as e:
             st.warning(f"⚠️ Error al generar análisis: {e}")
 
@@ -84,7 +76,7 @@ for i, (user, bot) in enumerate(st.session_state.chat_history):
         pdf.set_font("Arial", size=12)
         pdf.multi_cell(0, 10, f"Tú: {user}\nAsistente: {bot}\n")
         pdf_output = io.BytesIO()
-        pdf.output(pdf_output, dest='F')
+        pdf.output(pdf_output)
         st.download_button(
             label=f"📄 Exportar como PDF (Pregunta {i+1})",
             data=pdf_output.getvalue(),
