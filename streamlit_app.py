@@ -132,7 +132,7 @@ Basado en los datos anteriores, responde esta pregunta de forma ejecutiva:
         buffer.write(chat_export)
         st.download_button("📥 Exportar conversación (.txt)", buffer.getvalue(), file_name="chat_gerencial.txt")
 
-    # Exportar chat como PDF
+   # Exportar chat como PDF
 if st.session_state.chat_history:
     pdf = FPDF()
     pdf.add_page()
@@ -147,13 +147,14 @@ if st.session_state.chat_history:
     pdf_output = io.BytesIO()
     pdf.output(pdf_output)  # Guardar el archivo PDF en memoria
     
-    # Asegurarse de volver al inicio del flujo de bytes antes de la descarga
+    # Mover el puntero a la posición inicial del flujo
     pdf_output.seek(0)
     
     # Usar el objeto PDF en memoria para la descarga
     st.download_button(
         label="📄 Exportar como PDF",
-        data=pdf_output,
+        data=pdf_output.getvalue(),
         file_name="chat_gerencial.pdf",
         mime="application/pdf"
     )
+
