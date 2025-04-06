@@ -17,7 +17,7 @@ if "chat_history" not in st.session_state:
 
 # Función para manejar las respuestas y el historial
 def handle_response():
-    nueva_pregunta = st.session_state["input_question"]
+    nueva_pregunta = st.session_state.input_question  # Se asegura de no modificar el widget después de instanciar
     if nueva_pregunta:
         try:
             contexto = "Proporcione el contexto de los datos analizados..."  # Aquí iría el contexto de tu análisis
@@ -38,7 +38,7 @@ Basado en los datos anteriores, responde esta pregunta de forma ejecutiva:
             respuesta = response.choices[0].message.content
             # Añadir la pregunta y respuesta al historial
             st.session_state.chat_history.append((nueva_pregunta, respuesta))
-            st.session_state["input_question"] = ""  # Limpiar la entrada de la nueva pregunta
+            st.session_state.input_question = ""  # Limpiar la entrada de la nueva pregunta
         except Exception as e:
             st.warning(f"⚠️ Error al generar análisis: {e}")
 
