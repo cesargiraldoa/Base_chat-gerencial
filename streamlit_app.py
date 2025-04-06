@@ -132,7 +132,10 @@ Basado en los datos anteriores, responde esta pregunta de forma ejecutiva:
         buffer.write(chat_export)
         st.download_button("📥 Exportar conversación (.txt)", buffer.getvalue(), file_name="chat_gerencial.txt")
 
-   # Exportar chat como PDF
+   from fpdf import FPDF
+import io
+
+# Exportar chat como PDF
 if st.session_state.chat_history:
     pdf = FPDF()
     pdf.add_page()
@@ -143,18 +146,14 @@ if st.session_state.chat_history:
     for u, b in st.session_state.chat_history:
         pdf.multi_cell(0, 10, f"Tú: {u}\nAsistente: {b}\n")
     
-    # Crear archivo PDF en memoria
-    pdf_output = io.BytesIO()
-    pdf.output(pdf_output)  # Guardar el archivo PDF en memoria
+    # Guardar el archivo PDF en el sistema de archivos
+    pdf_output = "/mnt/data/chat_gerencial.pdf"  # Guardar directamente como archivo en el sistema
+    pdf.output(pdf_output)  # Guardar el archivo en la ruta específica
     
-    # Mover el puntero a la posición inicial del flujo
-    pdf_output.seek(0)
-    
-    # Usar el objeto PDF en memoria para la descarga
+    # Botón de descarga
     st.download_button(
         label="📄 Exportar como PDF",
-        data=pdf_output.getvalue(),
+        data=open(pdf_output, "rb").read(),
         file_name="chat_gerencial.pdf",
         mime="application/pdf"
     )
-
