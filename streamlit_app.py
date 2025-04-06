@@ -70,13 +70,13 @@ Eres un analista experto. Describe los siguientes clústeres en términos de su 
 Resumen:
 {resumen_markdown}
 """
-        respuesta_chat = client.chat.completions.create(
-    model="gpt-3.5-turbo",
-    messages=[
-       {"role": "system", "content": "Eres un asesor gerencial experto en ventas y análisis de datos."},
-       {"role": "user", "content": prompt_chat}
-    ]
-)
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "Eres un experto en inteligencia de negocios."},
+                {"role": "user", "content": prompt}
+            ]
+        )
         descripcion = response.choices[0].message.content
         st.markdown(descripcion)
     except Exception as e:
@@ -111,4 +111,39 @@ Basado en los datos anteriores, responde esta pregunta de forma ejecutiva:
             respuesta_chat = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "Eres un asesor gerencial experto en
+                    {"role": "system", "content": "Eres un asesor gerencial experto en ventas y análisis de datos."},
+                    {"role": "user", "content": prompt_chat}
+                ]
+            )
+            respuesta = respuesta_chat.choices[0].message.content
+            st.session_state.chat_history.append((nueva_pregunta, respuesta))
+            st.experimental_rerun()
+        except Exception as e:
+            st.warning(f"⚠️ Error al generar análisis: {e}")
+
+    for i, (user, bot) in enumerate(st.session_state.chat_history):
+        st.markdown(f"**🧑 Tú:** {user}")
+        st.markdown(f"**🤖 Asistente:** {bot}")
+
+    # Exportar chat como archivo de texto
+    if st.session_state.chat_history:
+        chat_export = "\n\n".join([f"Tú: {u}\nAsistente: {b}" for u, b in st.session_state.chat_history])
+        buffer = io.StringIO()
+        buffer.write(chat_export)
+        st.download_button("📥 Exportar conversación (.txt)", buffer.getvalue(), file_name="chat_gerencial.txt")
+
+        # Exportar chat como PDF
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.set_font("Arial", size=12)
+        for u, b in st.session_state.chat_history:
+            pdf.multi_cell(0, 10, f"Tú: {u}\nAsistente: {b}\n")
+        pdf_output = io.BytesIO()
+        pdf.output(pdf_output)
+        st.download_button(
+            label="📄 Exportar como PDF",
+            data=pdf_output.getvalue(),
+            file_name="chat_gerencial.pdf",
+            mime="application/pdf"
+        )
