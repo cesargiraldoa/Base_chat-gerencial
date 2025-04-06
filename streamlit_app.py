@@ -1,71 +1,89 @@
 import streamlit as st
-import openai
+import pandas as pd
+from openai import OpenAI
 from fpdf import FPDF
 import io
 
-# Configuración de la API de OpenAI
-openai.api_key = 'your_openai_api_key'
+# Configura el cliente de OpenAI usando el secreto
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-# Función para generar la respuesta con la API ChatCompletion de OpenAI
-def generar_respuesta(pregunta):
-    try:
-        # Realiza una llamada a la nueva API ChatCompletion
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",  # O el modelo que prefieras
-            messages=[
-                {"role": "system", "content": "Eres un asesor gerencial experto en ventas y análisis de datos."},
-                {"role": "user", "content": pregunta}
-            ]
-        )
-        return response.choices[0].message['content']
-    except Exception as e:
-        return f"Error al generar respuesta: {e}"
+# Configuración de la página
+st.set_page_config(page_title="Chat Gerencial - Ventas", layout="wide")
+st.title("🤖 Chat Gerencial - Análisis de Ventas")
 
-# Función para generar el PDF de la respuesta
-def generar_pdf(respuesta):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    pdf.multi_cell(0, 10, respuesta)
-    
-    # Guardar el archivo PDF en memoria
-    pdf_output = io.BytesIO()
-    pdf.output(pdf_output)
-    pdf_output.seek(0)
-    return pdf_output
+# Si no existe el historial de preguntas, inicialízalo
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
-# Función para mostrar el formulario de preguntas y respuestas
-def mostrar_pregunta_y_respuesta():
-    # Mostrar un campo para ingresar la pregunta
-    pregunta = st.text_input("Escribe tu pregunta:")
+# Función para manejar las respuestas y el historial
+def handle_response():
+    nueva_pregunta = st.session_state["input_question"]
+    if nueva_pregunta:
+        try:
+            contexto = "Proporcione el contexto de los datos analizados..."  # Aquí iría el contexto de tu análisis
+            prompt_chat = f"""
+{contexto}
 
-    if pregunta:
-        respuesta = generar_respuesta(pregunta)
-        st.write(respuesta)  # Mostrar la respuesta de la IA
+Basado en los datos anteriores, responde esta pregunta de forma ejecutiva:
+{nueva_pregunta}
+"""
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "Eres un asesor gerencial experto en ventas y análisis de datos."},
+                    {"role": "user", "content": prompt_chat}
+                ]
+            )
+            respuesta = response.choices[0].message.content
+            # Añadir la pregunta y respuesta al historial
+            st.session_state.chat_history.append((nueva_pregunta, respuesta))
+            st.session_state["input_question"] = ""  # Limpiar la entrada de la nueva pregunta
+        except Exception as e:
+            st.warning(f"⚠️ Error al generar análisis: {e}")
 
-        # Crear los botones para exportar la respuesta
-        pdf_output = generar_pdf(respuesta)
+# Subir archivo Excel de ventas
+archivo = st.file_uploader("Cargar archivo Excel de ventas", type=["xlsx"])
+
+if archivo:
+    df = pd.read_excel(archivo)
+    st.subheader("📊 Vista general de los datos")
+    st.dataframe(df)
+
+# Campo para ingresar nueva pregunta
+with st.form(key="question_form"):
+    nueva_pregunta = st.text_input("Escribe tu pregunta:", key="input_question")
+    submit_button = st.form_submit_button("Enviar pregunta")
+    if submit_button:
+        handle_response()
+
+# Mostrar el historial de chat (pregunta y respuesta)
+for i, (user, bot) in enumerate(st.session_state.chat_history):
+    st.markdown(f"**🧑 Tú:** {user}")
+    st.markdown(f"**🤖 Asistente:** {bot}")
+
+    # Opción para exportar la conversación
+    if st.button(f"📥 Exportar conversación .txt (Pregunta {i+1})"):
+        chat_export = f"Tú: {user}\nAsistente: {bot}\n"
+        buffer = io.StringIO()
+        buffer.write(chat_export)
+        st.download_button("Descargar como archivo .txt", buffer.getvalue(), file_name=f"chat_gerencial_{i+1}.txt")
+        
+        # Exportar como PDF
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.set_font("Arial", size=12)
+        pdf.multi_cell(0, 10, f"Tú: {user}\nAsistente: {bot}\n")
+        pdf_output = io.BytesIO()
+        pdf.output(pdf_output)
         st.download_button(
-            label="Descargar PDF",
-            data=pdf_output,
-            file_name="respuesta.pdf",
+            label=f"📄 Exportar como PDF (Pregunta {i+1})",
+            data=pdf_output.getvalue(),
+            file_name=f"chat_gerencial_{i+1}.pdf",
             mime="application/pdf"
         )
-        
-        st.download_button(
-            label="Descargar TXT",
-            data=respuesta,
-            file_name="respuesta.txt",
-            mime="text/plain"
-        )
 
-# Mostrar una nueva pregunta sin borrar las anteriores
-def main():
-    if 'input_question' not in st.session_state:
-        st.session_state.input_question = ""
-    
-    # Pregunta nueva
-    mostrar_pregunta_y_respuesta()
-
-if __name__ == "__main__":
-    main()
+# Opción para limpiar el historial de chat
+if st.button("🧹 Limpiar chat"):
+    st.session_state.chat_history = []
+    st.experimental_rerun()
