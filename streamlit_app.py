@@ -20,11 +20,19 @@ def handle_response():
     nueva_pregunta = st.session_state.input_question  # Guardamos la pregunta
     if nueva_pregunta:
         try:
-            contexto = "Proporcione el contexto de los datos analizados..."  # Aquí iría el contexto de tu análisis
+            # Descripción detallada para el contexto de un experto
+            contexto = """
+            Eres un experto analista en ventas y gerencia con años de experiencia, enfocado en proporcionar respuestas que permitan tomar decisiones informadas.
+            Tienes un profundo conocimiento sobre ventas, análisis de mercado, segmentación de clientes, comportamiento del consumidor y las mejores prácticas para optimizar las ventas de una empresa.
+            Tu objetivo es proporcionar recomendaciones estratégicas y ejecutivas que guíen las decisiones gerenciales de forma efectiva.
+            Debes ofrecer respuestas claras, fundamentadas, y con un enfoque práctico.
+            """
+
+            # Preparación del prompt para OpenAI
             prompt_chat = f"""
 {contexto}
 
-Basado en los datos anteriores, responde esta pregunta de forma ejecutiva:
+Basado en los datos de ventas proporcionados, responde esta pregunta de forma ejecutiva y estratégica, enfocada en tomar decisiones clave para el negocio:
 {nueva_pregunta}
 """
             # Llamada a la API de OpenAI para generar la respuesta
@@ -76,7 +84,7 @@ for i, (user, bot) in enumerate(st.session_state.chat_history):
         pdf.set_font("Arial", size=12)
         pdf.multi_cell(0, 10, f"Tú: {user}\nAsistente: {bot}\n")
         pdf_output = io.BytesIO()
-        pdf.output(pdf_output)
+        pdf.output(pdf_output, dest='F')
         st.download_button(
             label=f"📄 Exportar como PDF (Pregunta {i+1})",
             data=pdf_output.getvalue(),
