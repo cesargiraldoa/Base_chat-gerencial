@@ -125,7 +125,7 @@ Resumen:
         st.markdown(f"**🧑 Tú:** {user}")
         st.markdown(f"**🤖 Asistente:** {bot}")
 
-  import io
+import io
 from fpdf import FPDF
 
 # Código para generar el archivo PDF en memoria (sin intentar guardarlo en el servidor)
