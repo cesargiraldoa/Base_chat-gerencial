@@ -20,121 +20,44 @@ def calcular_tendencia(df, columna_ventas, periodos="mensual"):
 
         ventas_por_periodo = df.groupby('mes')[columna_ventas].sum() if periodos == "mensual" else df.groupby('trimestre')[columna_ventas].sum()
 
-        variacion = ventas_por_periodo.pct_change().fillna(0) * 100  # En porcentaje
+        variacion = ventas_por_periodo.pct_change().fillna(0) * 100
         return ventas_por_periodo, variacion
     else:
         st.warning("No se encuentra una columna de 'fecha' en el archivo. La comparación entre periodos no es posible.")
 
 # Si el archivo está cargado, procesarlo
 if archivo:
-    # Lee los datos del archivo
     df = pd.read_excel(archivo)
     st.subheader("Vista general de los datos cargados")
-    st.dataframe(df)  # Mostrar los datos cargados
+    st.dataframe(df)
 
-    # Verificar las columnas del archivo
     st.write("Columnas disponibles en el archivo:")
     st.write(df.columns)
 
-    # Inicializar el historial de preguntas si no existe
-    if "chat_history" not in st.session_state:
-        st.session_state.chat_history = []
+    # =======================
+    # 🔹 Sección de KPIs dinámicos
+    # =======================
+    st.markdown("## 📊 Resumen Ejecutivo de KPIs")
+    df['fecha'] = pd.to_datetime(df['fecha'])
+    df['mes'] = df['fecha'].dt.to_period('M')
 
-    # Campo de preguntas
-    pregunta = st.text_input("Escribe tu pregunta sobre las ventas:")
+    meses_disponibles = sorted(df['mes'].unique())
+    mes_seleccionado = st.selectbox("Selecciona un mes para ver los KPIs:", options=["Todos"] + list(map(str, meses_disponibles)))
 
-    # Botón para enviar la pregunta
-    if st.button('Enviar pregunta') and pregunta:
-        # Buscar la columna de ventas, sin importar el nombre exacto
-        columnas_posibles = [col for col in df.columns if 'venta' in col.lower()]
+    if mes_seleccionado != "Todos":
+        df_filtrado = df[df['mes'] == mes_seleccionado]
+    else:
+        df_filtrado = df
 
-        if columnas_posibles:
-            columna_ventas = columnas_posibles[0]  # Usamos la primera columna que contenga 'venta'
-            st.write(f"Columna de ventas detectada: {columna_ventas}")
+    ventas_totales = df_filtrado['ventas_reales'].sum()
+    promedio_mensual = df.groupby('mes')['ventas_reales'].sum().mean()
+    producto_top = df_filtrado.groupby('producto')['ventas_reales'].sum().idxmax()
+    sucursal_top = df_filtrado.groupby('sucursal')['ventas_reales'].sum().idxmax()
 
-            respuesta = ""
-            # Responder dependiendo de la pregunta
-            if any(kw in pregunta.lower() for kw in ["tendencia", "evolución", "ventas por mes"]):
-                periodo = "mensual"
-                ventas_periodo, variacion_periodo = calcular_tendencia(df, columna_ventas, periodos=periodo)
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Ventas Totales", f"{ventas_totales:,.0f}")
+    col2.metric("Promedio Mensual Global", f"{promedio_mensual:,.0f}")
+    col3.metric("Producto Más Vendido", producto_top)
+    col4.metric("Sucursal Top", sucursal_top)
 
-                if len(ventas_periodo) < 2:
-                    respuesta = "No hay suficientes datos de meses anteriores para calcular la tendencia mensual."
-                else:
-                    tendencia = "positiva" if variacion_periodo.iloc[-1] > 0 else "negativa"
-                    variacion_texto = f" ({variacion_periodo.iloc[-1]:.2f}%)"
-                    respuesta = f"La tendencia en ventas es {tendencia}{variacion_texto} para el periodo {ventas_periodo.index[-1]}."
-
-                    fig, ax = plt.subplots()
-                    ventas_periodo.plot(kind='bar', ax=ax, color='skyblue')
-                    ax.set_title("Ventas por Mes")
-                    ax.set_ylabel("Ventas")
-                    ax.set_xlabel("Mes")
-                    ax.grid(True, linestyle='--', alpha=0.6)
-                    st.pyplot(fig)
-
-            elif "comparación" in pregunta.lower():
-                if "producto" in pregunta.lower():
-                    ventas_por_producto = df.groupby('producto')[columna_ventas].sum()
-                    top_productos = ventas_por_producto.sort_values(ascending=False).head(10)
-                    respuesta = "Top 10 productos de mayor venta:\n" + str(top_productos)
-
-                    fig, ax = plt.subplots()
-                    top_productos.plot(kind='bar', ax=ax, color='lightgreen')
-                    ax.set_title("Top 10 Productos")
-                    ax.set_ylabel("Ventas")
-                    st.pyplot(fig)
-
-                elif "sucursal" in pregunta.lower():
-                    ventas_por_sucursal = df.groupby('sucursal')[columna_ventas].sum()
-                    top_sucursales = ventas_por_sucursal.sort_values(ascending=False).head(10)
-                    respuesta = "Top 10 sucursales de mayor venta:\n" + str(top_sucursales)
-
-                    fig, ax = plt.subplots()
-                    top_sucursales.plot(kind='bar', ax=ax, color='orange')
-                    ax.set_title("Top 10 Sucursales")
-                    ax.set_ylabel("Ventas")
-                    st.pyplot(fig)
-
-            elif "ventas por sucursal" in pregunta.lower():
-                ventas_sucursal = df.groupby('sucursal')[columna_ventas].sum()
-                respuesta = "Total de ventas por sucursal:\n" + str(ventas_sucursal)
-
-                fig, ax = plt.subplots()
-                ventas_sucursal.plot(kind='bar', ax=ax, color='salmon')
-                ax.set_title("Ventas por Sucursal")
-                ax.set_ylabel("Ventas")
-                st.pyplot(fig)
-
-            elif "top 10 productos" in pregunta.lower():
-                ventas_por_producto = df.groupby('producto')[columna_ventas].sum()
-                top_productos_venta = ventas_por_producto.sort_values(ascending=False).head(10)
-                bottom_productos_venta = ventas_por_producto.sort_values(ascending=True).head(10)
-
-                respuesta = f"Top 10 productos con mayores ventas:\n{top_productos_venta}\n"
-                respuesta += f"Top 10 productos con menores ventas:\n{bottom_productos_venta}"
-
-                fig1, ax1 = plt.subplots()
-                top_productos_venta.plot(kind='bar', ax=ax1, color='green')
-                ax1.set_title("Top 10 Productos - Mayor Venta")
-                ax1.set_ylabel("Ventas")
-                st.pyplot(fig1)
-
-                fig2, ax2 = plt.subplots()
-                bottom_productos_venta.plot(kind='bar', ax=ax2, color='red')
-                ax2.set_title("Top 10 Productos - Menor Venta")
-                ax2.set_ylabel("Ventas")
-                st.pyplot(fig2)
-
-            else:
-                respuesta = "Lo siento, no puedo responder a esa pregunta en este momento. Intenta otra consulta."
-
-            st.session_state.chat_history.append(("Pregunta: " + pregunta, "Respuesta: " + respuesta))
-            st.text_input("Escribe tu pregunta sobre las ventas:", value="", key="input_question")
-
-    for i, (user, bot) in enumerate(st.session_state.chat_history):
-        st.markdown(f"**🧑 Tú:** {user}")
-        st.markdown(f"**🤖 Asistente:** {bot}")
-
-else:
-    st.info("Por favor, carga un archivo Excel para continuar.")
+    # Resto del código sigue igual...
