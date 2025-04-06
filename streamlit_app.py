@@ -132,28 +132,27 @@ Basado en los datos anteriores, responde esta pregunta de forma ejecutiva:
         buffer.write(chat_export)
         st.download_button("📥 Exportar conversación (.txt)", buffer.getvalue(), file_name="chat_gerencial.txt")
 
-from fpdf import FPDF
-import io
+import os
 
-# Exportar chat como PDF
-if st.session_state.chat_history:
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_auto_page_break(auto=True, margin=15)
-    pdf.set_font("Arial", size=12)
-    
-    # Añadir contenido del chat al PDF
-    for u, b in st.session_state.chat_history:
-        pdf.multi_cell(0, 10, f"Tú: {u}\nAsistente: {b}\n")
-    
-    # Guardar el archivo PDF en el sistema de archivos
-    pdf_output = "/mnt/data/chat_gerencial.pdf"  # Guardar directamente como archivo en el sistema
-    pdf.output(pdf_output)  # Guardar el archivo en la ruta específica
-    
-    # Botón de descarga
-    st.download_button(
-        label="📄 Exportar como PDF",
-        data=open(pdf_output, "rb").read(),
-        file_name="chat_gerencial.pdf",
-        mime="application/pdf"
-    )
+# Definir una ruta temporal para almacenar el PDF
+pdf_output = "/tmp/chat_gerencial.pdf"
+
+# Crear el archivo PDF
+pdf = FPDF()
+pdf.add_page()
+pdf.set_auto_page_break(auto=True, margin=15)
+pdf.set_font("Arial", size=12)
+
+for u, b in st.session_state.chat_history:
+    pdf.multi_cell(0, 10, f"Tú: {u}\nAsistente: {b}\n")
+
+# Guardar el archivo PDF en la ubicación temporal
+pdf.output(pdf_output)
+
+# Crear un botón de descarga en Streamlit
+st.download_button(
+    label="📄 Exportar como PDF",
+    data=open(pdf_output, "rb").read(),
+    file_name="chat_gerencial.pdf",
+    mime="application/pdf"
+)
