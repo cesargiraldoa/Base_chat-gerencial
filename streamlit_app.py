@@ -27,8 +27,9 @@ def handle_response():
 Basado en los datos anteriores, responde esta pregunta de forma ejecutiva:
 {nueva_pregunta}
 """
+            # Llamada a la API de OpenAI para generar la respuesta
             response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model="gpt-3.5-turbo",  # Usando el modelo más actualizado
                 messages=[
                     {"role": "system", "content": "Eres un asesor gerencial experto en ventas y análisis de datos."},
                     {"role": "user", "content": prompt_chat}
