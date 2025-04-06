@@ -8,3 +8,5 @@ seaborn
 scikit-learn
 tabulate
 fpdf
+plotly
+
