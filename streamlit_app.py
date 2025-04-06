@@ -132,7 +132,7 @@ Basado en los datos anteriores, responde esta pregunta de forma ejecutiva:
         buffer.write(chat_export)
         st.download_button("📥 Exportar conversación (.txt)", buffer.getvalue(), file_name="chat_gerencial.txt")
 
-   from fpdf import FPDF
+from fpdf import FPDF
 import io
 
 # Exportar chat como PDF
