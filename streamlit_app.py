@@ -141,11 +141,11 @@ if st.session_state.chat_history:
     for u, b in st.session_state.chat_history:
         pdf.multi_cell(0, 10, f"Tú: {u}\nAsistente: {b}\n")
     
-    # Guardar el PDF en un objeto de memoria
+    # Guardar el archivo PDF en un objeto en memoria
     pdf_output = io.BytesIO()
-    pdf.output(pdf_output)
+    pdf.output(pdf_output)  # Genera el archivo PDF en la memoria
     
-    # Usar el contenido del objeto PDF generado
+    # Usar el objeto PDF en memoria para la descarga
     st.download_button(
         label="📄 Exportar como PDF",
         data=pdf_output.getvalue(),
