@@ -51,10 +51,35 @@ if archivo:
 
 # Campo para ingresar nueva pregunta
 with st.form(key="question_form"):
-    nueva_pregunta = st.text_input("Escribe tu pregunta:", key="input_question")
+    # Cambiar el nombre del key para evitar el conflicto en la entrada de preguntas
+with st.form(key=f"question_form_{len(st.session_state.chat_history)}"):
+    nueva_pregunta = st.text_input("Escribe tu pregunta:", key=f"input_question_{len(st.session_state.chat_history)}")
     submit_button = st.form_submit_button("Enviar pregunta")
-    if submit_button:
-        handle_response()
+
+    if submit_button and nueva_pregunta:
+        # Procesa la pregunta y muestra la respuesta
+        contexto = df.describe().to_string()
+        prompt_chat = f"""
+        {contexto}
+
+        Basado en los datos anteriores, responde esta pregunta de forma ejecutiva:
+        {nueva_pregunta}
+        """
+
+        try:
+            respuesta_chat = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "Eres un asesor gerencial experto en ventas y análisis de datos."},
+                    {"role": "user", "content": prompt_chat}
+                ]
+            )
+            respuesta = respuesta_chat.choices[0].message.content
+            st.session_state.chat_history.append((nueva_pregunta, respuesta))  # Agrega la pregunta y la respuesta a la historia
+            st.experimental_rerun()  # Esto permite que el formulario de la nueva pregunta se actualice
+        except Exception as e:
+            st.warning(f"⚠️ Error al generar análisis: {e}")
+
 
 # Mostrar el historial de chat (pregunta y respuesta)
 for i, (user, bot) in enumerate(st.session_state.chat_history):
