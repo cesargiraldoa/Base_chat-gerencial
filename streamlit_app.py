@@ -100,7 +100,7 @@ response = client.chat.completions.create(
         st.experimental_rerun()
 
     if st.button("Enviar pregunta") and nueva_pregunta:
-      try:
+    try:
     contexto = df.describe().to_string()
     prompt_chat = f"""
     {contexto}
@@ -120,3 +120,5 @@ response = client.chat.completions.create(
     st.experimental_rerun()
 except Exception as e:
     st.warning(f"⚠️ Error al generar análisis: {e}")
+    
+     
