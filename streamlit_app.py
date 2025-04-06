@@ -17,7 +17,7 @@ if "chat_history" not in st.session_state:
 
 # Función para manejar las respuestas y el historial
 def handle_response():
-    nueva_pregunta = st.session_state.input_question  # Se asegura de no modificar el widget después de instanciar
+    nueva_pregunta = st.session_state.input_question  # Guardamos la pregunta
     if nueva_pregunta:
         try:
             contexto = "Proporcione el contexto de los datos analizados..."  # Aquí iría el contexto de tu análisis
