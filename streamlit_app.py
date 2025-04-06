@@ -70,7 +70,7 @@ Eres un analista experto. Describe los siguientes clústeres en términos de su 
 Resumen:
 {resumen_markdown}
 """
-     response = client.chat.completions.create(
+response = client.chat.completions.create(
     model="gpt-3.5-turbo",
     messages=[
         {"role": "system", "content": "Eres un asesor gerencial experto en ventas y análisis de datos."},
