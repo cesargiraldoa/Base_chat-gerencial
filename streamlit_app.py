@@ -125,7 +125,10 @@ Resumen:
         st.markdown(f"**🧑 Tú:** {user}")
         st.markdown(f"**🤖 Asistente:** {bot}")
 
-    # Exportar chat como archivo PDF
+  import io
+from fpdf import FPDF
+
+# Código para generar el archivo PDF en memoria (sin intentar guardarlo en el servidor)
 if st.session_state.chat_history:
     pdf = FPDF()
     pdf.add_page()
@@ -143,7 +146,7 @@ if st.session_state.chat_history:
     # Aseguramos que el cursor esté al principio del archivo
     pdf_output.seek(0)
 
-    # Enviar el PDF al usuario
+    # Enviar el PDF al usuario para descarga local
     st.download_button(
         label="📄 Exportar como PDF",
         data=pdf_output,
