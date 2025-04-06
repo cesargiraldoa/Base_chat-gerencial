@@ -63,11 +63,17 @@ if archivo:
         for opcion in opciones_pregunta:
             if st.button(opcion, key=opcion):
                 boton_presionado = opcion
+                st.session_state.pregunta_auto = opcion  # Guardar en estado para ejecución automática
         st.markdown("---")
         pregunta = st.text_area("Escribe tu pregunta sobre las ventas:", value=boton_presionado or seleccion)
         enviar = st.button("Enviar pregunta", key="enviar")
 
-    if enviar and pregunta:
+    # Determinar si hay una pregunta automática a ejecutar
+    auto_pregunta = st.session_state.pop("pregunta_auto", None)
+    ejecutar = enviar or auto_pregunta
+    pregunta = auto_pregunta or pregunta
+
+    if ejecutar and pregunta:
         columnas_posibles = [col for col in df.columns if 'venta' in col.lower()]
         if columnas_posibles:
             columna_ventas = columnas_posibles[0]
@@ -85,7 +91,7 @@ if archivo:
                     tendencia = "positiva" if variacion_periodo.iloc[-1] > 0 else "negativa"
                     variacion_texto = f" ({variacion_periodo.iloc[-1]:.2f}%)"
                     respuesta = f"La tendencia en ventas es {tendencia}{variacion_texto} para el periodo {ventas_periodo.index[-1]}."
-                    fig, ax = plt.subplots()
+                    fig, ax = plt.subplots(figsize=(6, 3))
                     ventas_periodo.plot(kind='bar', ax=ax, color='skyblue')
                     ax.set_title("Ventas por Mes")
                     ax.set_ylabel("Ventas")
@@ -94,7 +100,7 @@ if archivo:
                 promedio_mensual = df.groupby('mes')[columna_ventas].mean()
                 promedio_general = promedio_mensual.mean()
                 respuesta = f"El promedio de ventas mensual es {promedio_general:,.2f} unidades."
-                fig, ax = plt.subplots()
+                fig, ax = plt.subplots(figsize=(6, 3))
                 promedio_mensual.plot(kind='bar', ax=ax, color='mediumpurple')
                 ax.set_title("Promedio de Ventas por Mes")
                 ax.set_ylabel("Promedio de Ventas")
@@ -102,7 +108,7 @@ if archivo:
             elif "ventas por hora" in pregunta.lower():
                 ventas_hora = df.groupby('hora')[columna_ventas].sum().sort_index()
                 respuesta = "Ventas por hora:\n" + str(ventas_hora)
-                fig, ax = plt.subplots()
+                fig, ax = plt.subplots(figsize=(6, 3))
                 ventas_hora.plot(kind='bar', ax=ax, color='lightblue')
                 ax.set_title("Ventas por Hora")
                 ax.set_ylabel("Ventas")
@@ -111,7 +117,7 @@ if archivo:
                 ventas_dia = df.groupby('dia_semana')[columna_ventas].sum().reindex([
                     'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'])
                 respuesta = "Ventas por día de la semana:\n" + str(ventas_dia)
-                fig, ax = plt.subplots()
+                fig, ax = plt.subplots(figsize=(6, 3))
                 ventas_dia.plot(kind='bar', ax=ax, color='gold')
                 ax.set_title("Ventas por Día de la Semana")
                 ax.set_ylabel("Ventas")
@@ -119,7 +125,7 @@ if archivo:
             elif "comparación trimestral" in pregunta.lower():
                 ventas_trimestre = df.groupby('trimestre')[columna_ventas].sum()
                 respuesta = "Ventas por trimestre:\n" + str(ventas_trimestre)
-                fig, ax = plt.subplots()
+                fig, ax = plt.subplots(figsize=(6, 3))
                 ventas_trimestre.plot(kind='bar', ax=ax, color='teal')
                 ax.set_title("Ventas por Trimestre")
                 ax.set_ylabel("Ventas")
