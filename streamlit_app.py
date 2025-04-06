@@ -70,13 +70,13 @@ Eres un analista experto. Describe los siguientes clústeres en términos de su 
 Resumen:
 {resumen_markdown}
 """
-response = client.chat.completions.create(
-    model="gpt-3.5-turbo",
-    messages=[
-        {"role": "system", "content": "Eres un asesor gerencial experto en ventas y análisis de datos."},
-        {"role": "user", "content": prompt_chat}
-    ]
-)
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "Eres un experto en inteligencia de negocios."},
+                {"role": "user", "content": prompt}
+            ]
+        )
         descripcion = response.choices[0].message.content
         st.markdown(descripcion)
     except Exception as e:
@@ -100,25 +100,15 @@ response = client.chat.completions.create(
         st.experimental_rerun()
 
     if st.button("Enviar pregunta") and nueva_pregunta:
-    try:
-    contexto = df.describe().to_string()
-    prompt_chat = f"""
-    {contexto}
+        try:
+            contexto = df.describe().to_string()
+            prompt_chat = f"""
+{contexto}
 
-    Basado en los datos anteriores, responde esta pregunta de forma ejecutiva:
-    {nueva_pregunta}
-    """
-    respuesta_chat = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "Eres un asesor gerencial experto en ventas y análisis de datos."},
-            {"role": "user", "content": prompt_chat}
-        ]
-    )
-    respuesta = respuesta_chat.choices[0].message.content
-    st.session_state.chat_history.append((nueva_pregunta, respuesta))
-    st.experimental_rerun()
-except Exception as e:
-    st.warning(f"⚠️ Error al generar análisis: {e}")
-    
-     
+Basado en los datos anteriores, responde esta pregunta de forma ejecutiva:
+{nueva_pregunta}
+"""
+            respuesta_chat = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "Eres un asesor gerencial experto en
