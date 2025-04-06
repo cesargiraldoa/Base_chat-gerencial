@@ -54,7 +54,7 @@ if archivo:
 
             respuesta = ""
             # Responder dependiendo de la pregunta
-            if "tendencia positiva" in pregunta.lower() or "tendencia negativa" in pregunta.lower():
+            if any(kw in pregunta.lower() for kw in ["tendencia", "evolución", "ventas por mes"]):
                 periodo = "mensual"
                 ventas_periodo, variacion_periodo = calcular_tendencia(df, columna_ventas, periodos=periodo)
                 tendencia = "positiva" if variacion_periodo.iloc[-1] > 0 else "negativa"
