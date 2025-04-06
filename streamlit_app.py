@@ -22,24 +22,29 @@ def handle_response():
         try:
             # Si tienes un archivo cargado, procesa los datos de ventas
             if 'df' in st.session_state:
-                # Datos extraídos del archivo Excel
-                ventas_data = st.session_state['df']
+                # Verifica si la columna 'ventas' está en el dataframe
+                if 'ventas' in st.session_state['df'].columns:
+                    # Datos extraídos del archivo Excel
+                    ventas_data = st.session_state['df']
 
-                # Genera un contexto con datos específicos de ventas
-                ventas_totales = ventas_data['ventas'].sum()
-                ventas_promedio = ventas_data['ventas'].mean()
-                ventas_maximas = ventas_data['ventas'].max()
-                ventas_minimas = ventas_data['ventas'].min()
+                    # Genera un contexto con datos específicos de ventas
+                    ventas_totales = ventas_data['ventas'].sum()
+                    ventas_promedio = ventas_data['ventas'].mean()
+                    ventas_maximas = ventas_data['ventas'].max()
+                    ventas_minimas = ventas_data['ventas'].min()
 
-                contexto = f"""
-                Se analizaron los datos de ventas con los siguientes resultados:
-                - Ventas totales: {ventas_totales}
-                - Ventas promedio: {ventas_promedio}
-                - Ventas máximas en un periodo: {ventas_maximas}
-                - Ventas mínimas en un periodo: {ventas_minimas}
+                    contexto = f"""
+                    Se analizaron los datos de ventas con los siguientes resultados:
+                    - Ventas totales: {ventas_totales}
+                    - Ventas promedio: {ventas_promedio}
+                    - Ventas máximas en un periodo: {ventas_maximas}
+                    - Ventas mínimas en un periodo: {ventas_minimas}
 
-                Estos datos proporcionan una base sólida para analizar las tendencias de ventas a lo largo del tiempo y compararlas con metas establecidas.
-                """
+                    Estos datos proporcionan una base sólida para analizar las tendencias de ventas a lo largo del tiempo y compararlas con metas establecidas.
+                    """
+                else:
+                    st.warning("⚠️ El archivo cargado no contiene la columna 'ventas'. Asegúrate de que los datos estén correctamente estructurados.")
+                    return
 
             else:
                 # En caso de que no haya datos cargados
