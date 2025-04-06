@@ -101,15 +101,23 @@ response = client.chat.completions.create(
 
     if st.button("Enviar pregunta") and nueva_pregunta:
         try:
-            contexto = df.describe().to_string()
-            prompt_chat = f"""
+    contexto = df.describe().to_string()
+    prompt_chat = f"""
 {contexto}
 
 Basado en los datos anteriores, responde esta pregunta de forma ejecutiva:
 {nueva_pregunta}
 """
-            respuesta_chat = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "Eres un asesor gerencial experto en ventas y análisis de datos."},
-                    {"role": "user", "content": prompt_chat}
+    respuesta_chat = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "Eres un asesor gerencial experto en ventas y análisis de datos."},
+            {"role": "user", "content": prompt_chat}
+        ]
+    )
+    respuesta = respuesta_chat.choices[0].message.content
+    st.session_state.chat_history.append((nueva_pregunta, respuesta))
+    st.experimental_rerun()
+
+except Exception as e:
+    st.warning(f"⚠️ Error al generar análisis: {e}")
