@@ -101,7 +101,7 @@ if archivo:
                         fig.update_layout(height=300, margin=dict(t=30, b=30))
                         st.plotly_chart(fig, use_container_width=True)
 
-                elif any(kw in pregunta.lower() for kw in ["promedio de ventas", "promedio mensual"]):
+                elif "promedio" in pregunta.lower():
                     promedio_mensual = df.groupby('mes')[columna_ventas].mean()
                     promedio_general = promedio_mensual.mean()
                     respuesta = f"El promedio de ventas mensual es {promedio_general:,.2f} unidades."
@@ -111,7 +111,7 @@ if archivo:
                     fig.update_layout(height=300, margin=dict(t=30, b=30))
                     st.plotly_chart(fig, use_container_width=True)
 
-                elif "ventas por hora" in pregunta.lower():
+                elif "hora" in pregunta.lower():
                     ventas_hora = df.groupby('hora')[columna_ventas].sum().sort_index()
                     respuesta = "Ventas por hora:\n" + str(ventas_hora)
                     fig = px.bar(x=ventas_hora.index, y=ventas_hora.values, labels={'x': 'Hora', 'y': 'Ventas'},
@@ -119,7 +119,7 @@ if archivo:
                     fig.update_layout(height=300, margin=dict(t=30, b=30))
                     st.plotly_chart(fig, use_container_width=True)
 
-                elif "ventas por día" in pregunta.lower() or "ventas por dia" in pregunta.lower():
+                elif "día" in pregunta.lower() or "dia" in pregunta.lower():
                     dias_orden = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
                     ventas_dia = df.groupby('dia_semana')[columna_ventas].sum().reindex(dias_orden)
                     respuesta = "Ventas por día de la semana:\n" + str(ventas_dia)
@@ -128,7 +128,7 @@ if archivo:
                     fig.update_layout(height=300, margin=dict(t=30, b=30))
                     st.plotly_chart(fig, use_container_width=True)
 
-                elif "comparación trimestral" in pregunta.lower():
+                elif "trimestre" in pregunta.lower():
                     ventas_trimestre = df.groupby('trimestre')[columna_ventas].sum()
                     respuesta = "Ventas por trimestre:\n" + str(ventas_trimestre)
                     fig = px.bar(x=ventas_trimestre.index.astype(str), y=ventas_trimestre.values,
@@ -139,59 +139,34 @@ if archivo:
 
                 if respuesta:
                     if "tendencia" in pregunta.lower():
-                        respuesta += "
-📊 **Análisis Gerencial Personalizado:**
-"
-                        respuesta += "🔹 Como CEO: aproveche la tendencia positiva para expandir mercados o refuerce acciones si es negativa.
-"
-                        respuesta += "🔹 Como Director Comercial: ajuste los objetivos mensuales en función de la variación reciente.
-"
-                        respuesta += "🔹 Como Analista de Ventas: profundice en segmentos que impulsan o frenan la tendencia.
-"
+                        respuesta += "\n📊 **Análisis Gerencial Personalizado:**\n"
+                        respuesta += "🔹 Como CEO: aproveche la tendencia positiva para expandir mercados o refuerce acciones si es negativa.\n"
+                        respuesta += "🔹 Como Director Comercial: ajuste los objetivos mensuales en función de la variación reciente.\n"
+                        respuesta += "🔹 Como Analista de Ventas: profundice en segmentos que impulsan o frenan la tendencia.\n"
                         respuesta += "📌 Recomendación: compare contra metas y determine si es necesario redireccionar campañas."
                     elif "promedio" in pregunta.lower():
-                        respuesta += "
-📊 **Análisis Gerencial Personalizado:**
-"
-                        respuesta += "🔹 Como CEO: valore la estabilidad o desviaciones del promedio mensual frente a la planeación estratégica.
-"
-                        respuesta += "🔹 Como Director Comercial: identifique meses que estén sobre o bajo el promedio para reforzar acciones.
-"
-                        respuesta += "🔹 Como Analista de Ventas: realice benchmarking contra años anteriores o contra la industria.
-"
+                        respuesta += "\n📊 **Análisis Gerencial Personalizado:**\n"
+                        respuesta += "🔹 Como CEO: valore la estabilidad o desviaciones del promedio mensual frente a la planeación estratégica.\n"
+                        respuesta += "🔹 Como Director Comercial: identifique meses que estén sobre o bajo el promedio para reforzar acciones.\n"
+                        respuesta += "🔹 Como Analista de Ventas: realice benchmarking contra años anteriores o contra la industria.\n"
                         respuesta += "📌 Recomendación: optimice la planificación mensual de recursos y metas."
                     elif "hora" in pregunta.lower():
-                        respuesta += "
-📊 **Análisis Gerencial Personalizado:**
-"
-                        respuesta += "🔹 Como CEO: identifique si el comportamiento horario permite extender o reducir horarios operativos.
-"
-                        respuesta += "🔹 Como Director Comercial: evalúe campañas flash o promociones por hora pico.
-"
-                        respuesta += "🔹 Como Analista de Ventas: determine qué franjas horarias generan mayor conversión.
-"
+                        respuesta += "\n📊 **Análisis Gerencial Personalizado:**\n"
+                        respuesta += "🔹 Como CEO: identifique si el comportamiento horario permite extender o reducir horarios operativos.\n"
+                        respuesta += "🔹 Como Director Comercial: evalúe campañas flash o promociones por hora pico.\n"
+                        respuesta += "🔹 Como Analista de Ventas: determine qué franjas horarias generan mayor conversión.\n"
                         respuesta += "📌 Recomendación: refuerce atención y marketing en las horas de mayor impacto."
                     elif "día" in pregunta.lower() or "dia" in pregunta.lower():
-                        respuesta += "
-📊 **Análisis Gerencial Personalizado:**
-"
-                        respuesta += "🔹 Como CEO: identifique si hay días con bajo rendimiento que puedan ajustarse operativamente.
-"
-                        respuesta += "🔹 Como Director Comercial: planifique promociones para reforzar los días débiles.
-"
-                        respuesta += "🔹 Como Analista de Ventas: relacione los días con comportamiento estacional o campañas previas.
-"
+                        respuesta += "\n📊 **Análisis Gerencial Personalizado:**\n"
+                        respuesta += "🔹 Como CEO: identifique si hay días con bajo rendimiento que puedan ajustarse operativamente.\n"
+                        respuesta += "🔹 Como Director Comercial: planifique promociones para reforzar los días débiles.\n"
+                        respuesta += "🔹 Como Analista de Ventas: relacione los días con comportamiento estacional o campañas previas.\n"
                         respuesta += "📌 Recomendación: diseñe estrategias comerciales diferenciadas por día de la semana."
                     elif "trimestre" in pregunta.lower():
-                        respuesta += "
-📊 **Análisis Gerencial Personalizado:**
-"
-                        respuesta += "🔹 Como CEO: tome decisiones de alto nivel a partir del rendimiento por trimestre.
-"
-                        respuesta += "🔹 Como Director Comercial: realinee recursos para el siguiente trimestre si hubo rezagos.
-"
-                        respuesta += "🔹 Como Analista de Ventas: compare evolución intertrimestral y destaque productos o canales.
-"
+                        respuesta += "\n📊 **Análisis Gerencial Personalizado:**\n"
+                        respuesta += "🔹 Como CEO: tome decisiones de alto nivel a partir del rendimiento por trimestre.\n"
+                        respuesta += "🔹 Como Director Comercial: realinee recursos para el siguiente trimestre si hubo rezagos.\n"
+                        respuesta += "🔹 Como Analista de Ventas: compare evolución intertrimestral y destaque productos o canales.\n"
                         respuesta += "📌 Recomendación: use esta vista como base para el forecast del siguiente trimestre."
 
                 if "chat_history" not in st.session_state:
