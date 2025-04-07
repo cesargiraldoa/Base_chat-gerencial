@@ -140,7 +140,6 @@ if archivo:
                 if respuesta:
                     if "tendencia" in pregunta.lower():
                         respuesta += "
-
 📊 **Análisis Gerencial Personalizado:**
 "
                         respuesta += "🔹 Como CEO: aproveche la tendencia positiva para expandir mercados o refuerce acciones si es negativa.
@@ -152,7 +151,6 @@ if archivo:
                         respuesta += "📌 Recomendación: compare contra metas y determine si es necesario redireccionar campañas."
                     elif "promedio" in pregunta.lower():
                         respuesta += "
-
 📊 **Análisis Gerencial Personalizado:**
 "
                         respuesta += "🔹 Como CEO: valore la estabilidad o desviaciones del promedio mensual frente a la planeación estratégica.
@@ -164,7 +162,6 @@ if archivo:
                         respuesta += "📌 Recomendación: optimice la planificación mensual de recursos y metas."
                     elif "hora" in pregunta.lower():
                         respuesta += "
-
 📊 **Análisis Gerencial Personalizado:**
 "
                         respuesta += "🔹 Como CEO: identifique si el comportamiento horario permite extender o reducir horarios operativos.
@@ -176,7 +173,6 @@ if archivo:
                         respuesta += "📌 Recomendación: refuerce atención y marketing en las horas de mayor impacto."
                     elif "día" in pregunta.lower() or "dia" in pregunta.lower():
                         respuesta += "
-
 📊 **Análisis Gerencial Personalizado:**
 "
                         respuesta += "🔹 Como CEO: identifique si hay días con bajo rendimiento que puedan ajustarse operativamente.
@@ -188,65 +184,6 @@ if archivo:
                         respuesta += "📌 Recomendación: diseñe estrategias comerciales diferenciadas por día de la semana."
                     elif "trimestre" in pregunta.lower():
                         respuesta += "
-
-📊 **Análisis Gerencial Personalizado:**
-"
-                        respuesta += "🔹 Como CEO: tome decisiones de alto nivel a partir del rendimiento por trimestre.
-"
-                        respuesta += "🔹 Como Director Comercial: realinee recursos para el siguiente trimestre si hubo rezagos.
-"
-                        respuesta += "🔹 Como Analista de Ventas: compare evolución intertrimestral y destaque productos o canales.
-"
-                        respuesta += "📌 Recomendación: use esta vista como base para el forecast del siguiente trimestre."
-
-📊 **Análisis Gerencial Personalizado:**
-"
-                        respuesta += "🔹 Como CEO: aproveche la tendencia positiva para expandir mercados o refuerce acciones si es negativa.
-"
-                        respuesta += "🔹 Como Director Comercial: ajuste los objetivos mensuales en función de la variación reciente.
-"
-                        respuesta += "🔹 Como Analista de Ventas: profundice en segmentos que impulsan o frenan la tendencia.
-"
-                        respuesta += "📌 Recomendación: compare contra metas y determine si es necesario redireccionar campañas."
-                    elif "promedio" in pregunta.lower():
-                        respuesta += "
-
-📊 **Análisis Gerencial Personalizado:**
-"
-                        respuesta += "🔹 Como CEO: valore la estabilidad o desviaciones del promedio mensual frente a la planeación estratégica.
-"
-                        respuesta += "🔹 Como Director Comercial: identifique meses que estén sobre o bajo el promedio para reforzar acciones.
-"
-                        respuesta += "🔹 Como Analista de Ventas: realice benchmarking contra años anteriores o contra la industria.
-"
-                        respuesta += "📌 Recomendación: optimice la planificación mensual de recursos y metas."
-                    elif "hora" in pregunta.lower():
-                        respuesta += "
-
-📊 **Análisis Gerencial Personalizado:**
-"
-                        respuesta += "🔹 Como CEO: identifique si el comportamiento horario permite extender o reducir horarios operativos.
-"
-                        respuesta += "🔹 Como Director Comercial: evalúe campañas flash o promociones por hora pico.
-"
-                        respuesta += "🔹 Como Analista de Ventas: determine qué franjas horarias generan mayor conversión.
-"
-                        respuesta += "📌 Recomendación: refuerce atención y marketing en las horas de mayor impacto."
-                    elif "día" in pregunta.lower() or "dia" in pregunta.lower():
-                        respuesta += "
-
-📊 **Análisis Gerencial Personalizado:**
-"
-                        respuesta += "🔹 Como CEO: identifique si hay días con bajo rendimiento que puedan ajustarse operativamente.
-"
-                        respuesta += "🔹 Como Director Comercial: planifique promociones para reforzar los días débiles.
-"
-                        respuesta += "🔹 Como Analista de Ventas: relacione los días con comportamiento estacional o campañas previas.
-"
-                        respuesta += "📌 Recomendación: diseñe estrategias comerciales diferenciadas por día de la semana."
-                    elif "trimestre" in pregunta.lower():
-                        respuesta += "
-
 📊 **Análisis Gerencial Personalizado:**
 "
                         respuesta += "🔹 Como CEO: tome decisiones de alto nivel a partir del rendimiento por trimestre.
