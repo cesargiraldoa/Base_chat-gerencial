@@ -95,6 +95,8 @@ if archivo:
                         respuesta = f"La tendencia en ventas es {tendencia}{variacion_texto} para el periodo {ventas_periodo.index[-1]}."
 emoji = "📈🔼" if tendencia == "positiva" else "📉🔽"
 respuesta = f"{emoji} " + respuesta
+emoji = "📈🔼" if tendencia == "positiva" else "📉🔽"
+respuesta = f"{emoji} " + respuesta
                         fig = px.bar(x=ventas_periodo.index.astype(str), y=ventas_periodo.values,
                                      labels={'x': 'Mes', 'y': 'Ventas'}, title="Ventas por Mes",
                                      color_discrete_sequence=['#00BFFF'])
