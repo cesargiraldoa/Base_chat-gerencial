@@ -92,7 +92,7 @@ if archivo:
                     else:
                         tendencia = "positiva" if variacion_periodo.iloc[-1] > 0 else "negativa"
                         variacion_texto = f" ({variacion_periodo.iloc[-1]:.2f}%)"
-                        respuesta = f"La tendencia en ventas es \1{variacion_texto} para el periodo \2."
+                        respuesta = f"La tendencia en ventas es {tendencia}{variacion_texto} para el periodo {ventas_periodo.index[-1]}."
 emoji = "📈🔼" if tendencia == "positiva" else "📉🔽"
 respuesta = f"{emoji} " + respuesta
                         fig = px.bar(x=ventas_periodo.index.astype(str), y=ventas_periodo.values,
