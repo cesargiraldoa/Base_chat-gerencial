@@ -3,6 +3,34 @@ import pandas as pd
 import plotly.express as px
 
 st.set_page_config(page_title="Chat Gerencial - Análisis de Ventas", layout="wide")
+st.markdown("""
+    <style>
+    body {
+        background-color: #141414;
+        color: white;
+    }
+    .stApp {
+        background-color: #141414;
+    }
+    h1, h2, h3, h4, h5, h6 {
+        color: white !important;
+    }
+    div[data-testid="metric-container"] {
+        background-color: #1e1e1e;
+        padding: 1rem;
+        border-radius: 10px;
+        box-shadow: 0px 0px 10px #ff3131;
+    }
+    .block-container {
+        padding-top: 2rem;
+    }
+        .netflix-card:hover {
+        transform: scale(1.03);
+        transition: all 0.3s ease-in-out;
+        box-shadow: 0 0 15px #ff3131;
+    }
+</style>
+""", unsafe_allow_html=True)
 st.title("🤖 Chat Gerencial - Análisis de Ventas")
 
 archivo = st.file_uploader("Cargar archivo Excel de ventas", type=["xlsx"])
@@ -49,25 +77,26 @@ if archivo:
         col3.metric("Producto Más Vendido", producto_top)
         col4.metric("Sucursal Top", sucursal_top)
 
-        with st.sidebar:
-            st.markdown("## 🤖 Preguntas rápidas")
-            opciones_pregunta = [
-                "¿Cuál es la tendencia de ventas mensual?",
-                "¿Cuál es el promedio de ventas mensual?",
-                "¿Cuáles son las ventas por hora?",
-                "¿Cuáles son las ventas por día de la semana?",
-                "Muéstrame la comparación trimestral"
+        st.markdown("## 🎞️ Preguntas tipo Netflix")
+            cols = st.columns(3)
+            tarjetas = [
+                {"emoji": "📈", "titulo": "Tendencia mensual", "descripcion": "¿Las ventas suben o bajan en los últimos meses?", "pregunta": "¿Cuál es la tendencia de ventas mensual?"},
+                {"emoji": "📊", "titulo": "Promedio de ventas", "descripcion": "Conoce el promedio mensual de tus ventas.", "pregunta": "¿Cuál es el promedio de ventas mensual?"},
+                {"emoji": "⏰", "titulo": "Ventas por hora", "descripcion": "Identifica las horas pico de venta.", "pregunta": "¿Cuáles son las ventas por hora?"},
+                {"emoji": "📅", "titulo": "Ventas por día", "descripcion": "¿Qué días se vende más?", "pregunta": "¿Cuáles son las ventas por día de la semana?"},
+                {"emoji": "🧭", "titulo": "Comparación trimestral", "descripcion": "Ve el comportamiento entre trimestres.", "pregunta": "Muéstrame la comparación trimestral"}
             ]
-            seleccion = st.selectbox("Selecciona una pregunta sugerida:", [""] + opciones_pregunta)
-            st.markdown("---")
-            st.markdown("Haz clic en una opción:")
-            boton_presionado = ""
-            for opcion in opciones_pregunta:
-                if st.button(opcion, key=opcion):
-                    boton_presionado = opcion
-                    st.session_state.pregunta_auto = opcion
-            st.markdown("---")
-            pregunta = st.text_area("Escribe tu pregunta sobre las ventas:", value=boton_presionado or seleccion)
+            for i, tarjeta in enumerate(tarjetas):
+                with cols[i % 3]:
+                    st.markdown(f"""
+                    <div class='netflix-card' style='background-color:#1e1e1e;padding:1rem;border-radius:10px;color:white;margin-bottom:1rem'>
+                        <h4>{tarjeta['emoji']} {tarjeta['titulo']}</h4>
+                        <p>{tarjeta['descripcion']}</p>
+                        <button onclick=\"window.location.href='/?pregunta={tarjeta['pregunta']}'\" style='padding:0.5rem 1rem;border:none;background-color:#FF3131;color:white;border-radius:5px'>Ver análisis</button>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+            pregunta = st.text_area("Escribe tu pregunta sobre las ventas:", value="")
             enviar = st.button("Enviar pregunta", key="enviar")
 
         auto_pregunta = st.session_state.pop("pregunta_auto", None)
